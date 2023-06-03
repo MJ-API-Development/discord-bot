@@ -23,9 +23,6 @@ Use the following commands in order to access Financial & Business News:
 !articles-by-publisher publisher_name
 !articles-paged page_number
 !articles-by-ticker ticker_code
-!articles-by-company company_name
-!articles-by-exchange exchange_code
-!companies-by-exchange exchange_code
 !tickers-by-exchange exchange_code
 !list-publishers
 !list-exchanges
