@@ -172,6 +172,18 @@ class TasksExecutor:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return []
 
+    async def articles_by_publisher(self, publisher: str = None) -> list[NewsArticle]:
+        """
+        :param publisher:
+        :return:
+        """
+        try:
+            request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-publisher/{publisher}"
+            return await self.do_fetch_articles(request_url)
+        except aiohttp.ClientError as e:
+            self._logger.error(f"Error fetching articles: {str(e)}")
+            return []
+
     async def do_fetch_articles(self, request_url):
         async with aiohttp.ClientSession() as session:
             async with session.get(url=request_url, params=self._params) as response:

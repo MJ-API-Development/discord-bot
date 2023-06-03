@@ -77,11 +77,20 @@ async def on_message(message):
             print("Invalid date format. Please provide the date in the format 'YYYY-MM-DD'.")
 
     elif message.content.startswith('!articles-by-publisher'):
-        _publisher: str = message.content.split(" ")[1].strip()
-        if _publisher:
-            _publisher = _publisher.lower()
-        else:
-            pass
+        try:
+            _publisher: str = message.content.split(" ")[1].strip()
+            if _publisher:
+                _publisher = _publisher.lower()
+                channel = client.get_channel(news_channel_id)
+                articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
+                _count: int = len(articles)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+            else:
+                await message.author.send("Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
+        except IndexError:
+            await message.author.send("Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
     elif message.content.startswith('!articles-paged'):
         try:
@@ -123,6 +132,7 @@ async def on_message(message):
             _company: str = message.content.split(" ")[1].strip()
             if _company:
                 _company = _company.lower()
+                await message.author.send("Endpoint still under development")
             else:
                 await message.author.send("Please supply the Company Name Example !articles-by-company Apple")
 
