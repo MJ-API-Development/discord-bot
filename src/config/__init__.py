@@ -24,12 +24,12 @@ class APPSettings(BaseSettings):
 
 
 class DiscordSettings(BaseSettings):
-    client_id: str = Field(..., env='REDDIT_CLIENT_ID')
-    client_secret: str = Field(..., env='REDDIT_CLIENT_SECRET')
-    user_agent: str = Field(..., env='REDDIT_USER_AGENT')
-    username: str = Field(..., env='REDDIT_USERNAME')
-    password: str = Field(..., env='REDDIT_PASSWORD')
-    subreddit_name: str = Field(..., env='SUB_REDDIT')
+    APPLICATION_ID: str = Field(..., env='DISCORD_APPLICATION_ID')
+    PUBLIC_KEY: str = Field(..., env='DISCORD_PUBLIC_KEY')
+    INTERACTIONS_ENDPOINT: str = Field(..., env='DISCORD_INTERACTIONS_ENDPOINT')
+    LINKED_ROLES_VERIFICATIONS_URL: str = Field(..., env='DISCORD_LINKED_ROLES_VERIFICATIONS_URL')
+    TOKEN: str = Field(..., env='DISCORD_TOKEN')
+    NEWS_API_CHANNEL_ID: int = Field(..., env='NEWS_API_CHANNEL_ID')
 
     class Config:
         env_file = '.env.development'

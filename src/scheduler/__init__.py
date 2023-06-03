@@ -1,14 +1,44 @@
 import datetime
-
+from src.config import config_instance
 import discord
+from discord.ext import commands
 
+intents = discord.Intents.all()
+intents.message_content = True
 
-client = discord.Client()
+client = discord.Client(intents=intents)
+news_channel_id: int = config_instance().DISCORD_SETTINGS.NEWS_API_CHANNEL_ID
+channel_message: str = f"""
+Access Our Financial & Business News API.
+
+Use the following commands in order to access Financial & Business News:
+
+!article-by-uuid UUID
+!articles-bounded count
+!articles-by-date date
+!articles-by-publisher publisher_name
+!articles-paged page_count page_number
+!articles-by-ticker ticker_code
+!articles-by-company company_name
+!articles-by-exchange exchange_code
+!companies-by-exchange exchange_code
+!tickers-by-exchange exchange_code
+!list-publishers
+!list-exchanges
+
+Note: The above commands are rate-limited to one request per minute.
+"""
 
 
 @client.event
 async def on_ready():
-    pass
+
+    channel = client.get_channel(news_channel_id)
+    if channel:
+        await channel.send('Welcome to Business & Financial News API Channel')
+        await channel.send(channel_message)
+    else:
+        print('Invalid channel ID.')
 
 
 @client.event
@@ -121,7 +151,7 @@ async def on_message(message):
     elif message.content.startswith('!list-publishers'):
         try:
             pass
-
+            print("listing publishers")
         except IndexError:
             raise ValueError("Exchange Code Required")
 
@@ -136,10 +166,8 @@ async def on_message(message):
 class TaskScheduler:
 
     def __init__(self):
-        self._discord = discord.Client()
-
+        # self._discord = discord.Client()
+        self.settings = config_instance().DISCORD_SETTINGS
 
     async def run(self):
-        pass
-
-
+        client.run(token=self.settings.TOKEN)

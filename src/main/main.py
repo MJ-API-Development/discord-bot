@@ -2,7 +2,7 @@ import asyncio
 
 from fastapi import FastAPI
 from src.config import config_instance
-from src.scheduler import TaskScheduler
+from src.scheduler import TaskScheduler, client
 
 settings = config_instance().APP_SETTINGS
 app = FastAPI(
@@ -29,14 +29,15 @@ scheduler = TaskScheduler()
 # this allows me to send 30 tweets over a period of 24 hours
 
 TEN_MINUTES = 600
-
+settings = config_instance().DISCORD_SETTINGS
 
 async def scheduled_task():
-    while True:
-        await scheduler.run()
-        await asyncio.sleep(delay=TEN_MINUTES)
+        # await scheduler.run()
+    await client.run(token=settings.TOKEN)
+    await asyncio.sleep(delay=TEN_MINUTES)
 
+asyncio.create_task(client.run(token=settings.TOKEN))
 
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(scheduled_task())
+    asyncio.create_task(client.run(token=settings.TOKEN))
