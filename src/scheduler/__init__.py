@@ -107,17 +107,16 @@ async def on_message(message):
             if _ticker:
                 _ticker = _ticker.lower()
                 channel = client.get_channel(news_channel_id)
-                companies = await tasks_executor.articles_by_ticker(ticker=_ticker)
+                articles: list[dict[str, str]] = await tasks_executor.articles_by_ticker(ticker=_ticker)
+                _count: int = len(articles)
                 mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending the response to your DM")
 
-                formatted_tickers = json.dumps(companies, indent=4)
-                # Split the content into chunks of maximum 2000 characters
-                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
-                # Send each chunk as a separate message
-                for chunk in chunks:
-                    await message.author.send(chunk)
-
+                await channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
+                _article_links = []
+                for article in articles:
+                    article_link = f"[{article['title']}]({article['link']})"
+                    _article_links.append(article_link)
+                await message.author.send(_article_links)
             else:
                 raise ValueError("Invalid ticker")
 

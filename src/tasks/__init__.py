@@ -139,12 +139,7 @@ class TasksExecutor:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return None
 
-    async def articles_by_ticker(self, ticker: str) -> list[NewsArticle]:
-        """
-
-        :param exchange_code:
-        :return:
-        """
+    async def articles_by_ticker(self, ticker: str) -> list[dict]:
         self._logger.info("Fetching Exchanges from API")
         _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-ticker/{ticker}"
@@ -154,12 +149,22 @@ class TasksExecutor:
                 async with session.get(url=request_url, params=_params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
-                        return await response.json()
-                    return None
+                        response = await response.json()
+                        articles = response.get('payload', [])
+                        # Format the articles payload to include only title and link
+                        formatted_articles = []
+                        for article in articles:
+                            formatted_article = {
+                                'title': article['title'],
+                                'link': article['link']
+                            }
+                            formatted_articles.append(formatted_article)
+                        return formatted_articles
+                    return []
 
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
-            return None
+            return []
 
 
 tasks_executor = TasksExecutor()
