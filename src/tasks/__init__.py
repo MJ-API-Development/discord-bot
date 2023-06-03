@@ -10,6 +10,7 @@ from src.models.stock import Stock
 class TasksExecutor:
     def __init__(self):
         self._logger = init_logger(self.__class__.__name__)
+        self._params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
 
     async def get_articles_bounded(self, count: int = 10):
         """
@@ -18,12 +19,12 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Articles from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+
         articles_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-bounded/{count}"
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=articles_url, params=_params) as response:
+                async with session.get(url=articles_url, params=self._params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
                         return await response.json()
@@ -39,12 +40,12 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Publishers from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+
         articles_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/list-publishers"
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=articles_url, params=_params) as response:
+                async with session.get(url=articles_url, params=self._params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
                         return await response.json()
@@ -60,12 +61,12 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Exchanges from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+
         articles_url: str = f"https://gateway.eod-stock-api.site/api/v1/exchanges"
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=articles_url, params=_params) as response:
+                async with session.get(url=articles_url, params=self._params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
                         return await response.json()
@@ -82,12 +83,12 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Exchanges from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/stocks/exchange/code/{exchange_code}"
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=request_url, params=_params) as response:
+                async with session.get(url=request_url, params=self._params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
                         response = await response.json()
@@ -109,7 +110,8 @@ class TasksExecutor:
                 ticker_info.append({'code': code, 'name': name})
         return ticker_info
 
-    async def companies_by_exchange(self, exchange_code: str) -> dict[str, str]:
+    @staticmethod
+    async def companies_by_exchange(exchange_code: str) -> dict[str, str]:
         """
 
         :param exchange_code:
@@ -124,60 +126,37 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Exchanges from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-exchange/{exchange_code}"
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url=request_url, params=_params) as response:
-                    response.raise_for_status()
-                    if response.headers.get('Content-Type') == 'application/json':
-                        return await response.json()
-                    return None
+            return await self.do_fetch_articles(request_url)
 
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return None
 
     async def articles_by_ticker(self, ticker: str) -> list[dict]:
-        self._logger.info("Fetching Exchanges from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+        self._logger.info("Fetching Articles By Ticker from API")
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-ticker/{ticker}"
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url=request_url, params=_params) as response:
-                    response.raise_for_status()
-                    if response.headers.get('Content-Type') == 'application/json':
-                        response = await response.json()
-                        articles = response.get('payload', [])
-                        # Format the articles payload to include only title and link
-                        formatted_articles = []
-                        for article in articles:
-                            formatted_article = {
-                                'title': article['title'],
-                                'link': article['link']
-                            }
-                            formatted_articles.append(formatted_article)
-                        return formatted_articles
-                    return []
+            return await self.do_fetch_articles(request_url)
 
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return []
 
-    async def articles_paged(self, count: int = 10, number: int = 1) -> list[dict]:
+    async def articles_by_page(self, number: int = 1) -> list[dict]:
         self._logger.info("Fetching Articles By Page Number from API")
-        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
-        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-bounded/{number}"
-
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-page/{number}"
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=request_url, params=_params) as response:
+                async with session.get(url=request_url, params=self._params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
                         response = await response.json()
-                        articles = response.get('payload', [])
+                        articles = response.get('payload', {}).get('results', [])
                         # Format the articles payload to include only title and link
                         formatted_articles = []
                         for article in articles:
@@ -192,6 +171,24 @@ class TasksExecutor:
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return []
+
+    async def do_fetch_articles(self, request_url):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url=request_url, params=self._params) as response:
+                response.raise_for_status()
+                if response.headers.get('Content-Type') == 'application/json':
+                    response = await response.json()
+                    articles = response.get('payload', [])
+                    # Format the articles payload to include only title and link
+                    formatted_articles = []
+                    for article in articles:
+                        formatted_article = {
+                            'title': article['title'],
+                            'link': article['link']
+                        }
+                        formatted_articles.append(formatted_article)
+                    return formatted_articles
+                return []
 
 
 tasks_executor = TasksExecutor()

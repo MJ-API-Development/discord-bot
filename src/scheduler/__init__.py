@@ -21,7 +21,7 @@ Use the following commands in order to access Financial & Business News:
 !articles-bounded count
 !articles-by-date date
 !articles-by-publisher publisher_name
-!articles-paged page_count page_number
+!articles-paged page_number
 !articles-by-ticker ticker_code
 !articles-by-company company_name
 !articles-by-exchange exchange_code
@@ -88,19 +88,14 @@ async def on_message(message):
 
     elif message.content.startswith('!articles-paged'):
         try:
-            _page_count: str = message.content.split(" ")[1].strip()
-            _page_number: str = message.content.split(" ")[2].strip()
+            _page_number: str = message.content.split(" ")[1].strip()
             if _page_number.isdecimal():
                 _page_number: int = int(_page_number)
             else:
                 raise ValueError("Invalid page number")
-            if _page_count.isdecimal():
-                _page_count: int = int(_page_count)
-            else:
-                raise ValueError("Invalid page count")
 
             channel = client.get_channel(news_channel_id)
-            articles: list[dict[str, str]] = await tasks_executor.articles_paged(count=_page_count, number=_page_number)
+            articles: list[dict[str, str]] = await tasks_executor.articles_by_page(number=_page_number)
             _count: int = len(articles)
             mention = message.author.mention
             await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
