@@ -36,7 +36,6 @@ Note: The above commands are rate-limited to one request per minute.
 
 @client.event
 async def on_ready():
-
     channel = client.get_channel(news_channel_id)
     if channel:
         await channel.send('Welcome to Business & Financial News API Channel')
@@ -49,9 +48,11 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+
     if message.content.startswith('!commands'):
-        channel = client.get_channel(news_channel_id)
-        await channel.send(channel_message)
+        # channel = client.get_channel(news_channel_id)
+        await message.author.send(channel_message)
+        # await channel.send(channel_message)
 
     elif message.content.startswith('!article-by-uuid'):
         uuid = message.content.split(" ")[1].strip()
@@ -157,7 +158,7 @@ async def on_message(message):
                 chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
                 # Send each chunk as a separate message
                 for chunk in chunks:
-                    await channel.send(chunk)
+                    await message.author.send(chunk)
             else:
                 raise ValueError("Invalid ticker")
 
@@ -175,7 +176,7 @@ async def on_message(message):
             chunks = [formatted_publishers[i:i + 2000] for i in range(0, len(formatted_publishers), 2000)]
             # Send each chunk as a separate message
             for chunk in chunks:
-                await channel.send(chunk)
+                await message.author.send(chunk)
         except IndexError:
             raise ValueError("Exchange Code Required")
 
@@ -190,16 +191,24 @@ async def on_message(message):
             chunks = [formatted_exchanges[i:i + 2000] for i in range(0, len(formatted_exchanges), 2000)]
             # Send each chunk as a separate message
             for chunk in chunks:
-                await channel.send(chunk)
+                await message.author.send(chunk)
         except IndexError:
             raise ValueError("Exchange Code Required")
 
 
-class TaskScheduler:
+@client.event
+async def on_member_join(member):
+    # Send a welcome message to the newly joined member
+    welcome_message = f"Welcome, {member.mention}! TO EOD-STOCK-API-VERSION-0.0.1"
+    await member.send(welcome_message)
 
-    def __init__(self):
-        # self._discord = discord.Client()
-        self.settings = config_instance().DISCORD_SETTINGS
+    # Perform additional actions if needed
+    # ...
 
-    async def run(self):
-        client.run(token=self.settings.TOKEN)
+
+@client.event
+async def on_member_remove(member):
+    # Perform actions or logging for the departed member
+    farewell_message = f"Goodbye, {member.name}! We'll miss you."
+    farewell_channel = client.get_channel(news_channel_id)
+    await farewell_channel.send(farewell_message)

@@ -3,7 +3,7 @@ import asyncio
 from fastapi import FastAPI
 from src.config import config_instance
 from src.logger import init_logger, AppLogger
-from src.scheduler import TaskScheduler, client
+from src.scheduler import client
 
 settings = config_instance().APP_SETTINGS
 app = FastAPI(
@@ -25,7 +25,7 @@ app = FastAPI(
     redoc_url=settings.REDOC_URL
 )
 
-scheduler = TaskScheduler()
+
 
 # this allows me to send 30 tweets over a period of 24 hours
 
