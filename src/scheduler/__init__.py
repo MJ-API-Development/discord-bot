@@ -98,6 +98,14 @@ async def on_message(message):
                 _page_count: int = int(_page_count)
             else:
                 raise ValueError("Invalid page count")
+
+            channel = client.get_channel(news_channel_id)
+            articles: list[dict[str, str]] = await tasks_executor.articles_paged(count=_page_count, number=_page_number)
+            _count: int = len(articles)
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+
         except IndexError:
             raise ValueError("Please supply both a page count and a page number separated by whitespace")
 
@@ -110,13 +118,8 @@ async def on_message(message):
                 articles: list[dict[str, str]] = await tasks_executor.articles_by_ticker(ticker=_ticker)
                 _count: int = len(articles)
                 mention = message.author.mention
-
                 await channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
-                _article_links = []
-                for article in articles:
-                    article_link = f"[{article['title']}]({article['link']})"
-                    _article_links.append(article_link)
-                await message.author.send(_article_links)
+                await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
             else:
                 raise ValueError("Invalid ticker")
 
@@ -245,7 +248,6 @@ async def on_member_join(member):
     await member.send(welcome_message)
 
     # Perform additional actions if needed
-    # ...
 
 
 @client.event

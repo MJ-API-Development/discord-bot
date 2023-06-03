@@ -166,5 +166,32 @@ class TasksExecutor:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return []
 
+    async def articles_paged(self, count: int = 10, number: int = 1) -> list[dict]:
+        self._logger.info("Fetching Articles By Page Number from API")
+        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-bounded/{number}"
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url=request_url, params=_params) as response:
+                    response.raise_for_status()
+                    if response.headers.get('Content-Type') == 'application/json':
+                        response = await response.json()
+                        articles = response.get('payload', [])
+                        # Format the articles payload to include only title and link
+                        formatted_articles = []
+                        for article in articles:
+                            formatted_article = {
+                                'title': article['title'],
+                                'link': article['link']
+                            }
+                            formatted_articles.append(formatted_article)
+                        return formatted_articles
+                    return []
+
+        except aiohttp.ClientError as e:
+            self._logger.error(f"Error fetching articles: {str(e)}")
+            return []
+
 
 tasks_executor = TasksExecutor()
