@@ -19,17 +19,9 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Articles from API")
-
-        articles_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-bounded/{count}"
-
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-bounded/{count}"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url=articles_url, params=self._params) as response:
-                    response.raise_for_status()
-                    if response.headers.get('Content-Type') == 'application/json':
-                        return await response.json()
-                    return None
-
+            return await self.do_fetch_articles(request_url)
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return None
@@ -179,6 +171,19 @@ class TasksExecutor:
         """
         try:
             request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-publisher/{publisher}"
+            return await self.do_fetch_articles(request_url)
+        except aiohttp.ClientError as e:
+            self._logger.error(f"Error fetching articles: {str(e)}")
+            return []
+
+    async def articles_by_date(self, _date: str) -> List[NewsArticle]:
+        """
+
+        :param _date:
+        :return:
+        """
+        try:
+            request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-date/{_date}"
             return await self.do_fetch_articles(request_url)
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")

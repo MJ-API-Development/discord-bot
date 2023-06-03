@@ -60,21 +60,39 @@ async def on_message(message):
             # TODO - raise error UUID not present
             pass
     elif message.content.startswith('!articles-bounded'):
-        count: str = message.content.split(" ")[1].strip()
-        if count.isdecimal():
-            _count: int = int(count)
-            # TODO - send request to endpoint and return articles
-        else:
-            pass
-    elif message.content.startswith('!articles-by-date'):
-        _date: str = message.content.split(" ")[1].strip()
         try:
+            count: str = message.content.split(" ")[1].strip()
+            if count.isdecimal():
+                _count: int = int(count)
+                # Use the date_obj for further processing
+                channel = client.get_channel(news_channel_id)
+                articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
+                _count: int = len(articles)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+            else:
+                await message.author.send(
+                    "Please supply Total Articles to retrieve Example !articles-bounded 10")
 
-            date_obj = datetime.date.fromisoformat(_date)
+        except IndexError:
+            await message.author.send(
+                "Please supply Total Articles to retrieve Example !articles-bounded 10")
+
+    elif message.content.startswith('!articles-by-date'):
+        try:
+            _date: str = message.content.split(" ")[1].strip()
             # Use the date_obj for further processing
-            print(date_obj)
-        except ValueError:
-            print("Invalid date format. Please provide the date in the format 'YYYY-MM-DD'.")
+            channel = client.get_channel(news_channel_id)
+            articles: list[dict[str, str]] = await tasks_executor.articles_by_date(_date=_date)
+            _count: int = len(articles)
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+
+        except IndexError:
+            await message.author.send(
+                "Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
     elif message.content.startswith('!articles-by-publisher'):
         try:
@@ -88,9 +106,11 @@ async def on_message(message):
                 await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
                 await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
             else:
-                await message.author.send("Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
+                await message.author.send(
+                    "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
         except IndexError:
-            await message.author.send("Please supply Page Number with this command example !articles-by-publisher bloomberg")
+            await message.author.send(
+                "Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
     elif message.content.startswith('!articles-paged'):
         try:
@@ -240,7 +260,7 @@ async def on_message(message):
 @client.event
 async def on_member_join(member):
     # Send a welcome message to the newly joined member
-    welcome_message = f"Welcome, {member.mention}! TO EOD-STOCK-API-VERSION-0.0.1"
+    welcome_message = f"Welcome, {member.mention}! TO EOD-STOCK-API VERSION-0.0.1"
     await member.send(welcome_message)
 
     # Perform additional actions if needed
