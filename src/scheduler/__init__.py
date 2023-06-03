@@ -106,6 +106,18 @@ async def on_message(message):
             _ticker: str = message.content.split(" ")[1].strip()
             if _ticker:
                 _ticker = _ticker.lower()
+                channel = client.get_channel(news_channel_id)
+                companies = await tasks_executor.articles_by_ticker(ticker=_ticker)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending the response to your DM")
+
+                formatted_tickers = json.dumps(companies, indent=4)
+                # Split the content into chunks of maximum 2000 characters
+                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
+                # Send each chunk as a separate message
+                for chunk in chunks:
+                    await message.author.send(chunk)
+
             else:
                 raise ValueError("Invalid ticker")
 
@@ -128,6 +140,18 @@ async def on_message(message):
             _exchange: str = message.content.split(" ")[1].strip()
             if _exchange:
                 _exchange = _exchange.lower()
+                channel = client.get_channel(news_channel_id)
+                companies = await tasks_executor.articles_by_exchange(exchange_code=_exchange)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending the response to your DM")
+
+                formatted_tickers = json.dumps(companies, indent=4)
+                # Split the content into chunks of maximum 2000 characters
+                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
+                # Send each chunk as a separate message
+                for chunk in chunks:
+                    await message.author.send(chunk)
+
             else:
                 raise ValueError("Invalid ticker")
 
@@ -139,6 +163,19 @@ async def on_message(message):
             _exchange_code: str = message.content.split(" ")[1].strip()
             if _exchange_code:
                 _exchange_code = _exchange_code.lower()
+
+                channel = client.get_channel(news_channel_id)
+                companies = await tasks_executor.companies_by_exchange(exchange_code=_exchange_code)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending the response to your DM")
+
+                formatted_tickers = json.dumps(companies, indent=4)
+                # Split the content into chunks of maximum 2000 characters
+                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
+                # Send each chunk as a separate message
+                for chunk in chunks:
+                    await message.author.send(chunk)
+
             else:
                 raise ValueError("Invalid ticker")
 

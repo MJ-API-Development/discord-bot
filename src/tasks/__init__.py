@@ -3,6 +3,7 @@ from typing import List, Dict
 import aiohttp
 from src.config import config_instance
 from src.logger import init_logger
+from src.models.articles import NewsArticle
 from src.models.stock import Stock
 
 
@@ -107,6 +108,58 @@ class TasksExecutor:
             if code and name:
                 ticker_info.append({'code': code, 'name': name})
         return ticker_info
+
+    async def companies_by_exchange(self, exchange_code: str) -> dict[str, str]:
+        """
+
+        :param exchange_code:
+        :return:
+        """
+        return dict(status=False, payload={}, message="Not implemented!")
+
+    async def articles_by_exchange(self, exchange_code: str) -> list[NewsArticle]:
+        """
+
+        :param exchange_code:
+        :return:
+        """
+        self._logger.info("Fetching Exchanges from API")
+        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-exchange/{exchange_code}"
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url=request_url, params=_params) as response:
+                    response.raise_for_status()
+                    if response.headers.get('Content-Type') == 'application/json':
+                        return await response.json()
+                    return None
+
+        except aiohttp.ClientError as e:
+            self._logger.error(f"Error fetching articles: {str(e)}")
+            return None
+
+    async def articles_by_ticker(self, ticker: str) -> list[NewsArticle]:
+        """
+
+        :param exchange_code:
+        :return:
+        """
+        self._logger.info("Fetching Exchanges from API")
+        _params: dict[str, str] = {'api_key': config_instance().EOD_API_KEY}
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-ticker/{ticker}"
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url=request_url, params=_params) as response:
+                    response.raise_for_status()
+                    if response.headers.get('Content-Type') == 'application/json':
+                        return await response.json()
+                    return None
+
+        except aiohttp.ClientError as e:
+            self._logger.error(f"Error fetching articles: {str(e)}")
+            return None
 
 
 tasks_executor = TasksExecutor()
