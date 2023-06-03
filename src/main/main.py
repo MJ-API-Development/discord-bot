@@ -2,6 +2,7 @@ import asyncio
 
 from fastapi import FastAPI
 from src.config import config_instance
+from src.logger import init_logger, AppLogger
 from src.scheduler import TaskScheduler, client
 
 settings = config_instance().APP_SETTINGS
@@ -31,13 +32,13 @@ scheduler = TaskScheduler()
 TEN_MINUTES = 600
 settings = config_instance().DISCORD_SETTINGS
 
-async def scheduled_task():
-        # await scheduler.run()
-    await client.run(token=settings.TOKEN)
-    await asyncio.sleep(delay=TEN_MINUTES)
 
-asyncio.create_task(client.run(token=settings.TOKEN))
+asyncio.create_task(client.run(token=settings.TOKEN, log_handler=AppLogger(name="Discord").handler))
+
 
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(client.run(token=settings.TOKEN))
+    # asyncio.create_task(client.run(token=settings.TOKEN))
+    pass
+
+

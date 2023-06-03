@@ -1,7 +1,11 @@
 import datetime
+import json
+
 from src.config import config_instance
 import discord
 from discord.ext import commands
+
+from src.tasks import tasks_executor
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -45,8 +49,11 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    if message.content.startswith('!commands'):
+        channel = client.get_channel(news_channel_id)
+        await channel.send(channel_message)
 
-    if message.content.startswith('!article-by-uuid'):
+    elif message.content.startswith('!article-by-uuid'):
         uuid = message.content.split(" ")[1].strip()
         if uuid:
             # TODO - fetch articles by uuid
@@ -142,6 +149,15 @@ async def on_message(message):
             _exchange_code: str = message.content.split(" ")[1].strip()
             if _exchange_code:
                 _exchange_code = _exchange_code.lower()
+                channel = client.get_channel(news_channel_id)
+                tickers = await tasks_executor.tickers_by_exchange(exchange_code=_exchange_code)
+
+                formatted_tickers = json.dumps(tickers, indent=4)
+                # Split the content into chunks of maximum 2000 characters
+                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
+                # Send each chunk as a separate message
+                for chunk in chunks:
+                    await channel.send(chunk)
             else:
                 raise ValueError("Invalid ticker")
 
@@ -150,15 +166,31 @@ async def on_message(message):
 
     elif message.content.startswith('!list-publishers'):
         try:
-            pass
             print("listing publishers")
+            channel = client.get_channel(news_channel_id)
+            publishers = await tasks_executor.list_publishers()
+            # Assuming the JSON string is stored in the 'publishers' variable
+            formatted_publishers = json.dumps(publishers, indent=4)
+            # Split the content into chunks of maximum 2000 characters
+            chunks = [formatted_publishers[i:i + 2000] for i in range(0, len(formatted_publishers), 2000)]
+            # Send each chunk as a separate message
+            for chunk in chunks:
+                await channel.send(chunk)
         except IndexError:
             raise ValueError("Exchange Code Required")
 
     elif message.content.startswith('!list-exchanges'):
         try:
-            pass
-
+            print("listing publishers")
+            channel = client.get_channel(news_channel_id)
+            exchanges = await tasks_executor.list_exchanges()
+            # Assuming the JSON string is stored in the 'publishers' variable
+            formatted_exchanges = json.dumps(exchanges, indent=4)
+            # Split the content into chunks of maximum 2000 characters
+            chunks = [formatted_exchanges[i:i + 2000] for i in range(0, len(formatted_exchanges), 2000)]
+            # Send each chunk as a separate message
+            for chunk in chunks:
+                await channel.send(chunk)
         except IndexError:
             raise ValueError("Exchange Code Required")
 

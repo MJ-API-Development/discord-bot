@@ -13,10 +13,10 @@ class AppLogger:
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(level=log_level)
 
-        handler = logging.FileHandler(self.logging_file) if is_file_logger else logging.StreamHandler(sys.stdout)
+        self.handler = logging.FileHandler(self.logging_file) if is_file_logger else logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        self.handler.setFormatter(formatter)
+        self.logger.addHandler(self.handler)
 
 
 @functools.lru_cache
