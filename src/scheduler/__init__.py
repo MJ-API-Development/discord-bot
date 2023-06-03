@@ -152,6 +152,8 @@ async def on_message(message):
                 _exchange_code = _exchange_code.lower()
                 channel = client.get_channel(news_channel_id)
                 tickers = await tasks_executor.tickers_by_exchange(exchange_code=_exchange_code)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending the response to your DM")
 
                 formatted_tickers = json.dumps(tickers, indent=4)
                 # Split the content into chunks of maximum 2000 characters
@@ -167,9 +169,11 @@ async def on_message(message):
 
     elif message.content.startswith('!list-publishers'):
         try:
-            print("listing publishers")
             channel = client.get_channel(news_channel_id)
             publishers = await tasks_executor.list_publishers()
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending the response to your DM")
+
             # Assuming the JSON string is stored in the 'publishers' variable
             formatted_publishers = json.dumps(publishers, indent=4)
             # Split the content into chunks of maximum 2000 characters
@@ -185,6 +189,8 @@ async def on_message(message):
             print("listing publishers")
             channel = client.get_channel(news_channel_id)
             exchanges = await tasks_executor.list_exchanges()
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending the response to your DM")
             # Assuming the JSON string is stored in the 'publishers' variable
             formatted_exchanges = json.dumps(exchanges, indent=4)
             # Split the content into chunks of maximum 2000 characters
