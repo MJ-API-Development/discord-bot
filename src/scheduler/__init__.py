@@ -99,7 +99,7 @@ async def on_message(message):
             await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
 
         except IndexError:
-            raise ValueError("Please supply both a page count and a page number separated by whitespace")
+            await message.author.send("Please supply Page Number with this command example !articles-paged 1")
 
     elif message.content.startswith('!articles-by-ticker'):
         try:
@@ -113,10 +113,10 @@ async def on_message(message):
                 await channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
                 await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
             else:
-                raise ValueError("Invalid ticker")
+                await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
 
         except IndexError:
-            raise ValueError("Ticker Code Required")
+            await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
 
     elif message.content.startswith('!articles-by-company'):
         try:
@@ -124,10 +124,10 @@ async def on_message(message):
             if _company:
                 _company = _company.lower()
             else:
-                raise ValueError("Invalid ticker")
+                await message.author.send("Please supply the Company Name Example !articles-by-company Apple")
 
         except IndexError:
-            raise ValueError("Company Name Required")
+            await message.author.send("Please supply the Company Name Example !articles-by-company Apple")
 
     elif message.content.startswith('!articles-by-exchange'):
         try:
@@ -147,10 +147,10 @@ async def on_message(message):
                     await message.author.send(chunk)
 
             else:
-                raise ValueError("Invalid ticker")
+                await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
 
         except IndexError:
-            raise ValueError("Exchange Required")
+            await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
 
     elif message.content.startswith('!companies-by-exchange'):
         try:
@@ -171,10 +171,10 @@ async def on_message(message):
                     await message.author.send(chunk)
 
             else:
-                raise ValueError("Invalid ticker")
+                await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
 
         except IndexError:
-            raise ValueError("Exchange Code Required")
+            await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
 
     elif message.content.startswith('!tickers-by-exchange'):
         try:
@@ -193,44 +193,38 @@ async def on_message(message):
                 for chunk in chunks:
                     await message.author.send(chunk)
             else:
-                raise ValueError("Invalid ticker")
+                await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
 
         except IndexError:
-            raise ValueError("Exchange Code Required")
+            await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
 
     elif message.content.startswith('!list-publishers'):
-        try:
-            channel = client.get_channel(news_channel_id)
-            publishers = await tasks_executor.list_publishers()
-            mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending the response to your DM")
+        channel = client.get_channel(news_channel_id)
+        publishers = await tasks_executor.list_publishers()
+        mention = message.author.mention
+        await channel.send(f"Hi {mention}, I am sending the response to your DM")
 
-            # Assuming the JSON string is stored in the 'publishers' variable
-            formatted_publishers = json.dumps(publishers, indent=4)
-            # Split the content into chunks of maximum 2000 characters
-            chunks = [formatted_publishers[i:i + 2000] for i in range(0, len(formatted_publishers), 2000)]
-            # Send each chunk as a separate message
-            for chunk in chunks:
-                await message.author.send(chunk)
-        except IndexError:
-            raise ValueError("Exchange Code Required")
+        # Assuming the JSON string is stored in the 'publishers' variable
+        formatted_publishers = json.dumps(publishers, indent=4)
+        # Split the content into chunks of maximum 2000 characters
+        chunks = [formatted_publishers[i:i + 2000] for i in range(0, len(formatted_publishers), 2000)]
+        # Send each chunk as a separate message
+        for chunk in chunks:
+            await message.author.send(chunk)
 
     elif message.content.startswith('!list-exchanges'):
-        try:
-            print("listing publishers")
-            channel = client.get_channel(news_channel_id)
-            exchanges = await tasks_executor.list_exchanges()
-            mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending the response to your DM")
-            # Assuming the JSON string is stored in the 'publishers' variable
-            formatted_exchanges = json.dumps(exchanges, indent=4)
-            # Split the content into chunks of maximum 2000 characters
-            chunks = [formatted_exchanges[i:i + 2000] for i in range(0, len(formatted_exchanges), 2000)]
-            # Send each chunk as a separate message
-            for chunk in chunks:
-                await message.author.send(chunk)
-        except IndexError:
-            raise ValueError("Exchange Code Required")
+        print("listing publishers")
+        channel = client.get_channel(news_channel_id)
+        exchanges = await tasks_executor.list_exchanges()
+        mention = message.author.mention
+        await channel.send(f"Hi {mention}, I am sending the response to your DM")
+        # Assuming the JSON string is stored in the 'publishers' variable
+        formatted_exchanges = json.dumps(exchanges, indent=4)
+        # Split the content into chunks of maximum 2000 characters
+        chunks = [formatted_exchanges[i:i + 2000] for i in range(0, len(formatted_exchanges), 2000)]
+        # Send each chunk as a separate message
+        for chunk in chunks:
+            await message.author.send(chunk)
 
 
 @client.event
