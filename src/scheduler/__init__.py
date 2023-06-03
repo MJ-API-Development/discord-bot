@@ -107,6 +107,31 @@ async def on_message(message):
         except IndexError:
             raise ValueError("Exchange Code Required")
 
+    elif message.content.startswith('!tickers-by-exchange'):
+        try:
+            _exchange_code: str = message.content.split(" ")[1].strip()
+            if _exchange_code:
+                _exchange_code = _exchange_code.lower()
+            else:
+                raise ValueError("Invalid ticker")
+
+        except IndexError:
+            raise ValueError("Exchange Code Required")
+
+    elif message.content.startswith('!list-publishers'):
+        try:
+            pass
+
+        except IndexError:
+            raise ValueError("Exchange Code Required")
+
+    elif message.content.startswith('!list-exchanges'):
+        try:
+            pass
+
+        except IndexError:
+            raise ValueError("Exchange Code Required")
+
 
 class TaskScheduler:
 
