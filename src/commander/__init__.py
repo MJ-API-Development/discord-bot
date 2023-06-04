@@ -87,11 +87,9 @@ class CommandProcessor:
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
-                chunks = [formatted_articles[i:i + 2000] for i in range(0, len(formatted_articles), 2000)]
-                # Send each chunk as a separate message
                 await message.author.send(f"Sending {_count} articles")
-                for chunk in chunks:
-                    await message.author.send(chunk)
+                for article in formatted_articles:
+                    await message.author.send(article)
 
             else:
                 await message.author.send(
@@ -110,7 +108,10 @@ class CommandProcessor:
             _count: int = len(articles)
             mention = message.author.mention
             await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+            formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+            await message.author.send(f"Sending {_count} articles")
+            for article in formatted_articles:
+                await message.author.send(article)
         except IndexError:
             await message.author.send(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
@@ -125,7 +126,10 @@ class CommandProcessor:
                 _count: int = len(articles)
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                await message.author.send(f"Sending {_count} articles")
+                for article in formatted_articles:
+                    await message.author.send(article)
             else:
                 await message.author.send(
                     "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
@@ -146,8 +150,10 @@ class CommandProcessor:
             _count: int = len(articles)
             mention = message.author.mention
             await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
-
+            formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+            await message.author.send(f"Sending {_count} articles")
+            for article in formatted_articles:
+                await message.author.send(article)
         except IndexError:
             await message.author.send("Please supply Page Number with this command example !articles-paged 1")
 
@@ -161,7 +167,10 @@ class CommandProcessor:
                 _count: int = len(articles)
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
-                await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                await message.author.send(f"Sending {_count} articles")
+                for article in formatted_articles:
+                    await message.author.send(article)
             else:
                 await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
 
