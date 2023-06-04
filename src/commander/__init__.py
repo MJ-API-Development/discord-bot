@@ -5,7 +5,7 @@ from uuid import uuid4
 from src.config import config_instance
 import discord
 from discord.ext import commands
-
+from discord import Message
 from src.tasks import tasks_executor
 
 intents = discord.Intents.all()
@@ -13,20 +13,21 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 news_channel_id: int = config_instance().DISCORD_SETTINGS.NEWS_API_CHANNEL_ID
+
 channel_message: str = f"""
 Access Our Financial & Business News API.
 
 Use the following commands in order to access Financial & Business News:
 
-!article-by-uuid UUID
-!articles-bounded count
-!articles-by-date date
-!articles-by-publisher publisher_name
-!articles-paged page_number
-!articles-by-ticker ticker_code
-!tickers-by-exchange exchange_code
-!list-publishers
-!list-exchanges
+    !article-by-uuid UUID
+    !articles-bounded count
+    !articles-by-date date
+    !articles-by-publisher publisher_name
+    !articles-paged page_number
+    !articles-by-ticker ticker_code
+    !tickers-by-exchange exchange_code
+    !list-publishers
+    !list-exchanges
 
 Note: The above commands are rate-limited to one request per minute.
 """
@@ -34,11 +35,12 @@ Note: The above commands are rate-limited to one request per minute.
 
 # noinspection PyMethodMayBeStatic
 class CommandProcessor:
-    def __init__(self):
+    def __init__(self, _client=client):
+        self._client = _client
         self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
         self._chunk_size: int = 1000
         self._users_flags: set[str] = set()
-        self._news_channel = client.get_channel(news_channel_id)
+        self._news_channel = self._client.get_channel(news_channel_id)
 
     async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
         """
@@ -57,25 +59,27 @@ class CommandProcessor:
         self._resource_links[resource_key] = resource
         return resource_key
 
-    async def send_commands(self, message):
+    async def send_commands(self, message: Message):
         # channel = client.get_channel(news_channel_id)
         _mention = message.author.mention
+
         if _mention not in self._users_flags:
             self._users_flags.add(message.author.mention)
             await message.author.send(channel_message)
             self._users_flags.remove(message.author.mention)
         else:
-            await message.author.send(f" {_mention} Wait until your previous command finished executing")
+            await message.reply(f" {_mention} Wait until your previous command finished executing")
 
         # await channel.send(channel_message)
 
-    async def articles_by_uuid(self, message):
+    async def articles_by_uuid(self, message: Message):
         try:
             uuid = message.content.split(" ")[1].strip()
             if uuid:
 
                 article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
                 mention = message.author.mention
+
                 if mention not in self._users_flags:
                     self._users_flags.add(message.author.mention)
                     await self._news_channel.send(f"Hi {mention}, I am sending Article to your DM")
@@ -84,13 +88,13 @@ class CommandProcessor:
                 else:
                     await self._news_channel.send(f" {mention} Wait until your previous command finished executing")
             else:
-                await message.author.send(
+                await message.reply(
                     "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
         except IndexError:
-            await message.author.send(
+            await message.reply(
                 "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
 
-    async def articles_bounded(self, message):
+    async def articles_bounded(self, message: Message):
         try:
             count: str = message.content.split(" ")[1].strip()
             if count.isdecimal():
@@ -110,16 +114,16 @@ class CommandProcessor:
                         await message.author.send(article)
                     self._users_flags.remove(mention)
                 else:
-                    await self._news_channel.send(f" {mention} Wait until your previous command finished executing")
+                    await message.reply(f" {mention} Wait until your previous command finished executing")
             else:
-                await message.author.send(
+                await message.reply(
                     "Please supply Total Articles to retrieve Example !articles-bounded 10")
 
         except IndexError:
             await message.author.send(
                 "Please supply Total Articles to retrieve Example !articles-bounded 10")
 
-    async def articles_by_date(self, message):
+    async def articles_by_date(self, message: Message):
         try:
             mention = message.author.mention
 
@@ -138,13 +142,13 @@ class CommandProcessor:
                     await message.author.send(article)
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f" {mention} Wait until your previous command finished executing")
+                await message.reply(f" {mention} Wait until your previous command finished executing")
 
         except IndexError:
-            await message.author.send(
+            await message.reply(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
-    async def articles_by_publisher(self, message):
+    async def articles_by_publisher(self, message: Message):
         try:
             _publisher: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
@@ -167,13 +171,13 @@ class CommandProcessor:
                         "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f"Hi {mention}, Wait until your previous command finishes executing")
+                await message.reply(f"Hi {mention}, Wait until your previous command finishes executing")
 
         except IndexError:
-            await message.author.send(
+            await message.reply(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
-    async def articles_paged(self, message):
+    async def articles_paged(self, message: Message):
         try:
             _page_number: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
@@ -196,12 +200,12 @@ class CommandProcessor:
 
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f"Hi {mention}, Wait until your previous command finished executing")
+                await message.reply(f"Hi {mention}, Wait until your previous command finished executing")
 
         except IndexError:
-            await message.author.send("Please supply Page Number with this command example !articles-paged 1")
+            await message.reply("Please supply Page Number with this command example !articles-paged 1")
 
-    async def articles_by_ticker(self, message):
+    async def articles_by_ticker(self, message: Message):
         try:
             _ticker: str = message.content.split(" ")[1].strip()
 
@@ -220,27 +224,27 @@ class CommandProcessor:
                     for article in formatted_articles:
                         await message.author.send(article)
                 else:
-                    await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
+                    await message.reply("Please supply the ticker symbols example !articles-by-ticker MSFT")
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f"Hi {mention}, please wait until previous command finishes")
+                await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
-            await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
+            await message.reply("Please supply the ticker symbols example !articles-by-ticker MSFT")
 
-    async def articles_by_company(self, message):
+    async def articles_by_company(self, message: Message):
         try:
             _company: str = message.content.split(" ")[1].strip()
             if _company:
                 _company = _company.lower()
                 await message.author.send("Endpoint still under development")
             else:
-                await message.author.send("Please supply the Company Name Example !articles-by-company Apple")
+                await message.reply("Please supply the Company Name Example !articles-by-company Apple")
 
         except IndexError:
-            await message.author.send("Please supply the Company Name Example !articles-by-company Apple")
+            await message.reply("Please supply the Company Name Example !articles-by-company Apple")
 
-    async def articles_by_exchange(self, message):
+    async def articles_by_exchange(self, message: Message):
         try:
             _exchange: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
@@ -259,19 +263,19 @@ class CommandProcessor:
                         await message.author.send(chunk)
 
                 else:
-                    await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
+                    await message.reply("Please supply the Exchange Code Example !!articles-by-exchange US")
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f"Hi {mention}, please wait until previous command finishes")
+                await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
-            await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
+            await message.reply("Please supply the Exchange Code Example !!articles-by-exchange US")
 
-    async def companies_by_exchange(self, message):
+    async def companies_by_exchange(self, message: Message):
         try:
             _exchange_code: str = message.content.split(" ")[1].strip()
-
             mention = message.author.mention
+
             if mention not in self._users_flags:
                 self._users_flags.add(mention)
                 if _exchange_code:
@@ -288,15 +292,15 @@ class CommandProcessor:
                         await message.author.send(chunk)
 
                 else:
-                    await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
+                    await message.reply("Please supply the Exchange Code Example !companies-by-exchange US")
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f"Hi {mention}, please wait until previous command finishes")
+                await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
-            await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
+            await message.reply("Please supply the Exchange Code Example !companies-by-exchange US")
 
-    async def tickers_by_exchange(self, message):
+    async def tickers_by_exchange(self, message: Message):
         try:
             _exchange_code: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
@@ -315,15 +319,15 @@ class CommandProcessor:
                                   for i in range(0, len(formatted_tickers), self._chunk_size)]:
                         await message.author.send(chunk)
                 else:
-                    await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
+                    await message.reply("Please supply the Exchange Code Example !tickers-by-exchange US")
                 self._users_flags.remove(mention)
             else:
-                await self._news_channel.send(f"Hi {mention}, please wait until previous command finishes")
+                await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
-            await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
+            await message.reply("Please supply the Exchange Code Example !tickers-by-exchange US")
 
-    async def list_publishers(self, message):
+    async def list_publishers(self, message: Message):
 
         mention = message.author.mention
         if mention not in self._users_flags:
@@ -338,7 +342,7 @@ class CommandProcessor:
                           for i in range(0, len(formatted_publishers), self._chunk_size)]:
                 await message.author.send(chunk)
         else:
-            await self._news_channel.send(f"Hi {mention}, please wait until previous command finishes")
+            await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
     async def list_exchanges(self, message):
         print("listing Exchanges")
@@ -356,7 +360,7 @@ class CommandProcessor:
                 await message.author.send(chunk)
             self._users_flags.remove(mention)
         else:
-            await self._news_channel.send(f"Hi {mention}, please wait until previous command finishes")
+            await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
 
 command_processor = CommandProcessor()
