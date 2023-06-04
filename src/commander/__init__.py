@@ -36,6 +36,7 @@ Note: The above commands are rate-limited to one request per minute.
 class CommandProcessor:
     def __init__(self):
         self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
+        self._chunk_size: int = 500
 
     async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
         """
@@ -198,12 +199,11 @@ class CommandProcessor:
                 companies = await tasks_executor.articles_by_exchange(exchange_code=_exchange)
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending the response to your DM")
-
                 formatted_tickers = json.dumps(companies, indent=4)
                 # Split the content into chunks of maximum 2000 characters
-                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
                 # Send each chunk as a separate message
-                for chunk in chunks:
+                for chunk in [formatted_tickers[i:i + self._chunk_size]
+                              for i in range(0, len(formatted_tickers), self._chunk_size)]:
                     await message.author.send(chunk)
 
             else:
@@ -222,12 +222,11 @@ class CommandProcessor:
                 companies = await tasks_executor.companies_by_exchange(exchange_code=_exchange_code)
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending the response to your DM")
-
                 formatted_tickers = json.dumps(companies, indent=4)
                 # Split the content into chunks of maximum 2000 characters
-                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
                 # Send each chunk as a separate message
-                for chunk in chunks:
+                for chunk in [formatted_tickers[i:i + self._chunk_size]
+                              for i in range(0, len(formatted_tickers), self._chunk_size)]:
                     await message.author.send(chunk)
 
             else:
@@ -245,12 +244,10 @@ class CommandProcessor:
                 tickers = await tasks_executor.tickers_by_exchange(exchange_code=_exchange_code)
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending the response to your DM")
-
                 formatted_tickers = json.dumps(tickers, indent=4)
-                # Split the content into chunks of maximum 2000 characters
-                chunks = [formatted_tickers[i:i + 2000] for i in range(0, len(formatted_tickers), 2000)]
                 # Send each chunk as a separate message
-                for chunk in chunks:
+                for chunk in [formatted_tickers[i:i + self._chunk_size]
+                              for i in range(0, len(formatted_tickers), self._chunk_size)]:
                     await message.author.send(chunk)
             else:
                 await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
@@ -263,27 +260,25 @@ class CommandProcessor:
         publishers = await tasks_executor.list_publishers()
         mention = message.author.mention
         await channel.send(f"Hi {mention}, I am sending the response to your DM")
-
         # Assuming the JSON string is stored in the 'publishers' variable
         formatted_publishers = json.dumps(publishers, indent=4)
-        # Split the content into chunks of maximum 2000 characters
-        chunks = [formatted_publishers[i:i + 2000] for i in range(0, len(formatted_publishers), 2000)]
+
         # Send each chunk as a separate message
-        for chunk in chunks:
+        for chunk in [formatted_publishers[i:i + self._chunk_size]
+                      for i in range(0, len(formatted_publishers), self._chunk_size)]:
             await message.author.send(chunk)
 
     async def list_exchanges(self, message):
-        print("listing publishers")
+        print("listing Exchanges")
         channel = client.get_channel(news_channel_id)
         exchanges = await tasks_executor.list_exchanges()
         mention = message.author.mention
         await channel.send(f"Hi {mention}, I am sending the response to your DM")
         # Assuming the JSON string is stored in the 'publishers' variable
         formatted_exchanges = json.dumps(exchanges, indent=4)
-        # Split the content into chunks of maximum 2000 characters
-        chunks = [formatted_exchanges[i:i + 2000] for i in range(0, len(formatted_exchanges), 2000)]
         # Send each chunk as a separate message
-        for chunk in chunks:
+        for chunk in [formatted_exchanges[i:i + self._chunk_size]
+                      for i in range(0, len(formatted_exchanges), self._chunk_size)]:
             await message.author.send(chunk)
 
 
