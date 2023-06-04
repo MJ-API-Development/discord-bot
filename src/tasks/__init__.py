@@ -28,24 +28,11 @@ class TasksExecutor:
 
     async def list_publishers(self) -> list[str] | None:
         """
-
         :return:
         """
         self._logger.info("Fetching Publishers from API")
-
-        articles_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/list-publishers"
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url=articles_url, params=self._params) as response:
-                    response.raise_for_status()
-                    if response.headers.get('Content-Type') == 'application/json':
-                        return await response.json()
-                    return None
-
-        except aiohttp.ClientError as e:
-            self._logger.error(f"Error fetching articles: {str(e)}")
-            return None
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/list-publishers"
+        return await self.return_lists(request_url=request_url)
 
     async def list_exchanges(self) -> list[str] | None:
         """
@@ -53,15 +40,17 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Exchanges from API")
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/exchanges"
+        return await self.return_lists(request_url=request_url)
 
-        articles_url: str = f"https://gateway.eod-stock-api.site/api/v1/exchanges"
-
+    async def return_lists(self, request_url: str):
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=articles_url, params=self._params) as response:
+                async with session.get(url=request_url, params=self._params) as response:
                     response.raise_for_status()
                     if response.headers.get('Content-Type') == 'application/json':
-                        return await response.json()
+                        results = await response.json()
+                        return results['payload']
                     return None
 
         except aiohttp.ClientError as e:
@@ -111,7 +100,7 @@ class TasksExecutor:
         """
         return dict(status=False, payload={}, message="Not implemented!")
 
-    async def articles_by_exchange(self, exchange_code: str) -> list[NewsArticle]:
+    async def articles_by_exchange(self, exchange_code: str) -> list[NewsArticle] | None:
         """
 
         :param exchange_code:
@@ -150,14 +139,7 @@ class TasksExecutor:
                         response = await response.json()
                         articles = response.get('payload', {}).get('results', [])
                         # Format the articles payload to include only title and link
-                        formatted_articles = []
-                        for article in articles:
-                            formatted_article = {
-                                'title': article['title'],
-                                'link': article['link']
-                            }
-                            formatted_articles.append(formatted_article)
-                        return formatted_articles
+                        return articles
                     return []
 
         except aiohttp.ClientError as e:
@@ -197,14 +179,7 @@ class TasksExecutor:
                     response = await response.json()
                     articles = response.get('payload', [])
                     # Format the articles payload to include only title and link
-                    formatted_articles = []
-                    for article in articles:
-                        formatted_article = {
-                            'title': article['title'],
-                            'link': article['link']
-                        }
-                        formatted_articles.append(formatted_article)
-                    return formatted_articles
+                    return articles
                 return []
 
 

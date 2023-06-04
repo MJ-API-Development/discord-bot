@@ -1,9 +1,9 @@
 import asyncio
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Path
 from src.config import config_instance
 from src.logger import init_logger, AppLogger
-from src.scheduler import client
+from src.commander import client
 
 settings = config_instance().APP_SETTINGS
 app = FastAPI(
@@ -25,13 +25,8 @@ app = FastAPI(
     redoc_url=settings.REDOC_URL
 )
 
-
-
-# this allows me to send 30 tweets over a period of 24 hours
-
 TEN_MINUTES = 600
 settings = config_instance().DISCORD_SETTINGS
-
 
 asyncio.create_task(client.run(token=settings.TOKEN, log_handler=AppLogger(name="Discord").handler))
 
@@ -42,3 +37,7 @@ async def startup_event():
     pass
 
 
+@app.get("/discord/links/{resource}", methods=["GET", "POST"])
+def process_discord_links(resource: str = Path(...)):
+    # Your code logic here
+    pass

@@ -1,7 +1,7 @@
 import datetime
 import json
 from typing import Callable
-
+from uuid import uuid4
 from src.config import config_instance
 import discord
 from discord.ext import commands
@@ -35,7 +35,24 @@ Note: The above commands are rate-limited to one request per minute.
 # noinspection PyMethodMayBeStatic
 class CommandProcessor:
     def __init__(self):
-        pass
+        self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
+
+    async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
+        """
+        :param resource_key:
+        :return:
+        """
+        return self._resource_links.get(resource_key)
+
+    async def set_resource_by_key(self, resource: dict[str, str | list[dict[str, str]]]) -> str:
+        """
+            will set resource and return key
+        :param resource:
+        :return:
+        """
+        resource_key: str = str(uuid4())
+        self._resource_links[resource_key] = resource
+        return resource_key
 
     async def send_commands(self, message):
         # channel = client.get_channel(news_channel_id)
@@ -69,7 +86,13 @@ class CommandProcessor:
                 _count: int = len(articles)
                 mention = message.author.mention
                 await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                chunks = [formatted_articles[i:i + 2000] for i in range(0, len(formatted_articles), 2000)]
+                # Send each chunk as a separate message
+                await message.author.send(f"Sending {_count} articles")
+                for chunk in chunks:
+                    await message.author.send(chunk)
+
             else:
                 await message.author.send(
                     "Please supply Total Articles to retrieve Example !articles-bounded 10")
