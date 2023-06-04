@@ -36,7 +36,7 @@ Note: The above commands are rate-limited to one request per minute.
 class CommandProcessor:
     def __init__(self):
         self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
-        self._chunk_size: int = 500
+        self._chunk_size: int = 1000
 
     async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
         """
