@@ -27,11 +27,18 @@ app = FastAPI(
 
 TEN_MINUTES = 600
 settings = config_instance().DISCORD_SETTINGS
+task_started = False
 
 
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(client.start(token=settings.TOKEN))
-    print("Discord bot running")
+    global task_started
+    if not task_started:
+        # Set the flag to indicate that the task has started
+        task_started = True
 
-
+        # Start the task
+        asyncio.create_task(client.start(token=settings.TOKEN))
+        print("Discord bot running")
+    else:
+        print("Task already started, skipping...")
