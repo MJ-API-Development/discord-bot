@@ -390,7 +390,11 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-    await _commands_lookup[message.content.split(" ")[0]](message)
+    try:
+        await _commands_lookup.get(message.content.split(" ")[0], command_processor.send_commands)(message)
+        # await _commands_lookup[message.content.split(" ")[0]](message)
+    except IndexError:
+        await command_processor.send_commands(message)
 
 
 @client.event
