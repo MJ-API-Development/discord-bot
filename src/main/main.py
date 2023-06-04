@@ -29,7 +29,8 @@ TEN_MINUTES = 600
 settings = config_instance().DISCORD_SETTINGS
 task_started = False
 
-asyncio.create_task(client.start(token=settings.TOKEN))
+
+# asyncio.create_task(client.start(token=settings.TOKEN))
 
 @app.on_event("startup")
 async def startup_event():
@@ -39,7 +40,7 @@ async def startup_event():
         task_started = True
 
         # Start the task
-        # asyncio.create_task(client.start(token=settings.TOKEN))
+        asyncio.create_task(client.start(token=settings.TOKEN))
         print("Discord bot running")
     else:
         print("Task already started, skipping...")
