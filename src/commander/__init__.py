@@ -37,6 +37,7 @@ class CommandProcessor:
     def __init__(self):
         self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
         self._chunk_size: int = 1000
+        self._users_flags: set[str] = set()
 
     async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
         """
@@ -57,7 +58,14 @@ class CommandProcessor:
 
     async def send_commands(self, message):
         # channel = client.get_channel(news_channel_id)
-        await message.author.send(channel_message)
+        _mention = message.author.mention
+        if _mention not in self._users_flags:
+            self._users_flags.add(message.author.mention)
+            await message.author.send(channel_message)
+            self._users_flags.remove(message.author.mention)
+        else:
+            await message.author.send(f" {_mention} Wait until your previous command finished executing")
+
         # await channel.send(channel_message)
 
     async def articles_by_uuid(self, message):
@@ -67,8 +75,13 @@ class CommandProcessor:
                 channel = client.get_channel(news_channel_id)
                 article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
                 mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending Article to your DM")
-                await message.author.send(f"[{article['title']}]({article['link']})")
+                if mention not in self._users_flags:
+                    self._users_flags.add(message.author.mention)
+                    await channel.send(f"Hi {mention}, I am sending Article to your DM")
+                    await message.author.send(f"[{article['title']}]({article['link']})")
+                    self._users_flags.remove(message.author.mention)
+                else:
+                    await channel.send(f" {mention} Wait until your previous command finished executing")
             else:
                 await message.author.send(
                     "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
@@ -80,18 +93,23 @@ class CommandProcessor:
         try:
             count: str = message.content.split(" ")[1].strip()
             if count.isdecimal():
-                _count: int = int(count)
-                # Use the date_obj for further processing
-                channel = client.get_channel(news_channel_id)
-                articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
-                _count: int = len(articles)
                 mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
-                await message.author.send(f"Sending {_count} articles")
-                for article in formatted_articles:
-                    await message.author.send(article)
+                channel = client.get_channel(news_channel_id)
+                if mention not in self._users_flags:
+                    self._users_flags.add(mention)
+                    _count: int = int(count)
+                    # Use the date_obj for further processing
+                    articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
+                    _count: int = len(articles)
 
+                    await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                    formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                    await message.author.send(f"Sending {_count} articles")
+                    for article in formatted_articles:
+                        await message.author.send(article)
+                    self._users_flags.remove(mention)
+                else:
+                    await channel.send(f" {mention} Wait until your previous command finished executing")
             else:
                 await message.author.send(
                     "Please supply Total Articles to retrieve Example !articles-bounded 10")
@@ -102,17 +120,25 @@ class CommandProcessor:
 
     async def articles_by_date(self, message):
         try:
-            _date: str = message.content.split(" ")[1].strip()
-            # Use the date_obj for further processing
-            channel = client.get_channel(news_channel_id)
-            articles: list[dict[str, str]] = await tasks_executor.articles_by_date(_date=_date)
-            _count: int = len(articles)
             mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
-            await message.author.send(f"Sending {_count} articles")
-            for article in formatted_articles:
-                await message.author.send(article)
+            channel = client.get_channel(news_channel_id)
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                _date: str = message.content.split(" ")[1].strip()
+                # Use the date_obj for further processing
+
+                articles: list[dict[str, str]] = await tasks_executor.articles_by_date(_date=_date)
+                _count: int = len(articles)
+
+                await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                await message.author.send(f"Sending {_count} articles")
+                for article in formatted_articles:
+                    await message.author.send(article)
+                self._users_flags.remove(mention)
+            else:
+                await channel.send(f" {mention} Wait until your previous command finished executing")
+
         except IndexError:
             await message.author.send(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
@@ -120,20 +146,28 @@ class CommandProcessor:
     async def articles_by_publisher(self, message):
         try:
             _publisher: str = message.content.split(" ")[1].strip()
-            if _publisher:
-                _publisher = _publisher.lower()
-                channel = client.get_channel(news_channel_id)
-                articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
-                _count: int = len(articles)
-                mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
-                await message.author.send(f"Sending {_count} articles")
-                for article in formatted_articles:
-                    await message.author.send(article)
+            mention = message.author.mention
+            channel = client.get_channel(news_channel_id)
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                if _publisher:
+                    _publisher = _publisher.lower()
+                    self._users_flags.add(mention)
+                    articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
+                    _count: int = len(articles)
+
+                    await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                    formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                    await message.author.send(f"Sending {_count} articles")
+                    for article in formatted_articles:
+                        await message.author.send(article)
+                else:
+                    await message.author.send(
+                        "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
+                self._users_flags.remove(mention)
             else:
-                await message.author.send(
-                    "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
+                await channel.send(f"Hi {mention}, Wait until your previous command finishes executing")
+
         except IndexError:
             await message.author.send(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
@@ -141,39 +175,54 @@ class CommandProcessor:
     async def articles_paged(self, message):
         try:
             _page_number: str = message.content.split(" ")[1].strip()
-            if _page_number.isdecimal():
-                _page_number: int = int(_page_number)
-            else:
-                raise ValueError("Invalid page number")
-
-            channel = client.get_channel(news_channel_id)
-            articles: list[dict[str, str]] = await tasks_executor.articles_by_page(number=_page_number)
-            _count: int = len(articles)
             mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
-            await message.author.send(f"Sending {_count} articles")
-            for article in formatted_articles:
-                await message.author.send(article)
+            channel = client.get_channel(news_channel_id)
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                if _page_number.isdecimal():
+                    _page_number: int = int(_page_number)
+                else:
+                    raise ValueError("Invalid page number")
+
+                articles: list[dict[str, str]] = await tasks_executor.articles_by_page(number=_page_number)
+                _count: int = len(articles)
+
+                await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                await message.author.send(f"Sending {_count} articles")
+                for article in formatted_articles:
+                    await message.author.send(article)
+
+                self._users_flags.remove(mention)
+            else:
+                await channel.send(f"Hi {mention}, Wait until your previous command finished executing")
+
         except IndexError:
             await message.author.send("Please supply Page Number with this command example !articles-paged 1")
 
     async def articles_by_ticker(self, message):
         try:
             _ticker: str = message.content.split(" ")[1].strip()
-            if _ticker:
-                _ticker = _ticker.lower()
-                channel = client.get_channel(news_channel_id)
-                articles: list[dict[str, str]] = await tasks_executor.articles_by_ticker(ticker=_ticker)
-                _count: int = len(articles)
-                mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
-                formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
-                await message.author.send(f"Sending {_count} articles")
-                for article in formatted_articles:
-                    await message.author.send(article)
+            channel = client.get_channel(news_channel_id)
+            mention = message.author.mention
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                if _ticker:
+                    _ticker = _ticker.lower()
+
+                    articles: list[dict[str, str]] = await tasks_executor.articles_by_ticker(ticker=_ticker)
+                    _count: int = len(articles)
+
+                    await channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
+                    formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+                    await message.author.send(f"Sending {_count} articles")
+                    for article in formatted_articles:
+                        await message.author.send(article)
+                else:
+                    await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
+                self._users_flags.remove(mention)
             else:
-                await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
+                await channel.send(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
             await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
@@ -193,21 +242,26 @@ class CommandProcessor:
     async def articles_by_exchange(self, message):
         try:
             _exchange: str = message.content.split(" ")[1].strip()
-            if _exchange:
-                _exchange = _exchange.lower()
-                channel = client.get_channel(news_channel_id)
-                companies = await tasks_executor.articles_by_exchange(exchange_code=_exchange)
-                mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending the response to your DM")
-                formatted_tickers = json.dumps(companies, indent=4)
-                # Split the content into chunks of maximum 2000 characters
-                # Send each chunk as a separate message
-                for chunk in [formatted_tickers[i:i + self._chunk_size]
-                              for i in range(0, len(formatted_tickers), self._chunk_size)]:
-                    await message.author.send(chunk)
+            mention = message.author.mention
+            channel = client.get_channel(news_channel_id)
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                if _exchange:
+                    _exchange = _exchange.lower()
+                    companies = await tasks_executor.articles_by_exchange(exchange_code=_exchange)
+                    await channel.send(f"Hi {mention}, I am sending the response to your DM")
+                    formatted_tickers = json.dumps(companies, indent=4)
+                    # Split the content into chunks of maximum 2000 characters
+                    # Send each chunk as a separate message
+                    for chunk in [formatted_tickers[i:i + self._chunk_size]
+                                  for i in range(0, len(formatted_tickers), self._chunk_size)]:
+                        await message.author.send(chunk)
 
+                else:
+                    await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
+                self._users_flags.remove(mention)
             else:
-                await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
+                await channel.send(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
             await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
@@ -215,22 +269,28 @@ class CommandProcessor:
     async def companies_by_exchange(self, message):
         try:
             _exchange_code: str = message.content.split(" ")[1].strip()
-            if _exchange_code:
-                _exchange_code = _exchange_code.lower()
+            channel = client.get_channel(news_channel_id)
+            mention = message.author.mention
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                if _exchange_code:
+                    _exchange_code = _exchange_code.lower()
 
-                channel = client.get_channel(news_channel_id)
-                companies = await tasks_executor.companies_by_exchange(exchange_code=_exchange_code)
-                mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending the response to your DM")
-                formatted_tickers = json.dumps(companies, indent=4)
-                # Split the content into chunks of maximum 2000 characters
-                # Send each chunk as a separate message
-                for chunk in [formatted_tickers[i:i + self._chunk_size]
-                              for i in range(0, len(formatted_tickers), self._chunk_size)]:
-                    await message.author.send(chunk)
+                    companies = await tasks_executor.companies_by_exchange(exchange_code=_exchange_code)
 
+                    await channel.send(f"Hi {mention}, I am sending the response to your DM")
+                    formatted_tickers = json.dumps(companies, indent=4)
+                    # Split the content into chunks of maximum 2000 characters
+                    # Send each chunk as a separate message
+                    for chunk in [formatted_tickers[i:i + self._chunk_size]
+                                  for i in range(0, len(formatted_tickers), self._chunk_size)]:
+                        await message.author.send(chunk)
+
+                else:
+                    await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
+                self._users_flags.remove(mention)
             else:
-                await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
+                await channel.send(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
             await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
@@ -238,48 +298,64 @@ class CommandProcessor:
     async def tickers_by_exchange(self, message):
         try:
             _exchange_code: str = message.content.split(" ")[1].strip()
-            if _exchange_code:
-                _exchange_code = _exchange_code.lower()
-                channel = client.get_channel(news_channel_id)
-                tickers = await tasks_executor.tickers_by_exchange(exchange_code=_exchange_code)
-                mention = message.author.mention
-                await channel.send(f"Hi {mention}, I am sending the response to your DM")
-                formatted_tickers = json.dumps(tickers, indent=4)
-                # Send each chunk as a separate message
-                for chunk in [formatted_tickers[i:i + self._chunk_size]
-                              for i in range(0, len(formatted_tickers), self._chunk_size)]:
-                    await message.author.send(chunk)
+            mention = message.author.mention
+            channel = client.get_channel(news_channel_id)
+            if mention not in self._users_flags:
+                self._users_flags.add(mention)
+                if _exchange_code:
+                    _exchange_code = _exchange_code.lower()
+
+                    tickers = await tasks_executor.tickers_by_exchange(exchange_code=_exchange_code)
+
+                    await channel.send(f"Hi {mention}, I am sending the response to your DM")
+                    formatted_tickers = json.dumps(tickers, indent=4)
+                    # Send each chunk as a separate message
+                    for chunk in [formatted_tickers[i:i + self._chunk_size]
+                                  for i in range(0, len(formatted_tickers), self._chunk_size)]:
+                        await message.author.send(chunk)
+                else:
+                    await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
+                self._users_flags.remove(mention)
             else:
-                await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
+                await channel.send(f"Hi {mention}, please wait until previous command finishes")
 
         except IndexError:
             await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
 
     async def list_publishers(self, message):
         channel = client.get_channel(news_channel_id)
-        publishers = await tasks_executor.list_publishers()
         mention = message.author.mention
-        await channel.send(f"Hi {mention}, I am sending the response to your DM")
-        # Assuming the JSON string is stored in the 'publishers' variable
-        formatted_publishers = json.dumps(publishers, indent=4)
+        if mention not in self._users_flags:
+            self._users_flags.add(mention)
+            publishers = await tasks_executor.list_publishers()
+            await channel.send(f"Hi {mention}, I am sending the response to your DM")
+            # Assuming the JSON string is stored in the 'publishers' variable
+            formatted_publishers = json.dumps(publishers, indent=4)
 
-        # Send each chunk as a separate message
-        for chunk in [formatted_publishers[i:i + self._chunk_size]
-                      for i in range(0, len(formatted_publishers), self._chunk_size)]:
-            await message.author.send(chunk)
+            # Send each chunk as a separate message
+            for chunk in [formatted_publishers[i:i + self._chunk_size]
+                          for i in range(0, len(formatted_publishers), self._chunk_size)]:
+                await message.author.send(chunk)
+        else:
+            await channel.send(f"Hi {mention}, please wait until previous command finishes")
 
     async def list_exchanges(self, message):
         print("listing Exchanges")
         channel = client.get_channel(news_channel_id)
-        exchanges = await tasks_executor.list_exchanges()
         mention = message.author.mention
-        await channel.send(f"Hi {mention}, I am sending the response to your DM")
-        # Assuming the JSON string is stored in the 'publishers' variable
-        formatted_exchanges = json.dumps(exchanges, indent=4)
-        # Send each chunk as a separate message
-        for chunk in [formatted_exchanges[i:i + self._chunk_size]
-                      for i in range(0, len(formatted_exchanges), self._chunk_size)]:
-            await message.author.send(chunk)
+        if mention not in self._users_flags:
+            self._users_flags.add(mention)
+            exchanges = await tasks_executor.list_exchanges()
+            await channel.send(f"Hi {mention}, I am sending the response to your DM")
+            # Assuming the JSON string is stored in the 'publishers' variable
+            formatted_exchanges = json.dumps(exchanges, indent=4)
+            # Send each chunk as a separate message
+            for chunk in [formatted_exchanges[i:i + self._chunk_size]
+                          for i in range(0, len(formatted_exchanges), self._chunk_size)]:
+                await message.author.send(chunk)
+            self._users_flags.remove(mention)
+        else:
+            await channel.send(f"Hi {mention}, please wait until previous command finishes")
 
 
 command_processor = CommandProcessor()
