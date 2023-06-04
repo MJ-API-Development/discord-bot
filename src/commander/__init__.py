@@ -1,17 +1,16 @@
-import datetime
+
 import json
 from typing import Callable
 from uuid import uuid4
 from src.config import config_instance
 import discord
-from discord.ext import commands
-from discord import Message
+from discord import Message, Client, Member
 from src.tasks import tasks_executor
 
 intents = discord.Intents.all()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+client: Client = Client(intents=intents)
 news_channel_id: int = config_instance().DISCORD_SETTINGS.NEWS_API_CHANNEL_ID
 
 channel_message: str = f"""
@@ -28,8 +27,7 @@ Use the following commands in order to access Financial & Business News:
     !tickers-by-exchange exchange_code
     !list-publishers
     !list-exchanges
-
-Note: The above commands are rate-limited to one request per minute.
+------------------------------------------------------------------------
 """
 
 
@@ -41,6 +39,9 @@ class CommandProcessor:
         self._chunk_size: int = 1000
         self._users_flags: set[str] = set()
         self._news_channel = self._client.get_channel(news_channel_id)
+        self._client.clear()
+        self.total_members = self._news_channel.member_count
+        self._channel_members: list[Member] = self._news_channel.members
 
     async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
         """
@@ -117,11 +118,11 @@ class CommandProcessor:
                     await message.reply(f" {mention} Wait until your previous command finished executing")
             else:
                 await message.reply(
-                    "Please supply Total Articles to retrieve Example !articles-bounded 10")
+                    "Please supply Number of Articles to retrieve Example !articles-bounded 10")
 
         except IndexError:
             await message.author.send(
-                "Please supply Total Articles to retrieve Example !articles-bounded 10")
+                "Please supply Number of Articles to retrieve Example !articles-bounded 10")
 
     async def articles_by_date(self, message: Message):
         try:
@@ -385,16 +386,18 @@ _commands_lookup: dict[str, Callable] = {
 async def on_ready():
     channel = client.get_channel(news_channel_id)
     if channel:
-        await channel.send('Welcome to Business & Financial News API Channel')
         await channel.send(channel_message)
     else:
-        print('Invalid channel ID.')
+        pass
 
 
 @client.event
 async def on_message(message):
+
+    # Prevent sending message to itself
     if message.author == client.user:
         return
+
     try:
         await _commands_lookup.get(message.content.split(" ")[0], command_processor.send_commands)(message)
         # await _commands_lookup[message.content.split(" ")[0]](message)
