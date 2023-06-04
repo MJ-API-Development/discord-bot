@@ -40,7 +40,6 @@ class CommandProcessor:
         self._chunk_size: int = 1000
         self._users_flags: set[str] = set()
         self._news_channel = self._client.get_channel(news_channel_id)
-        # self._client.clear()
         self.total_members = self._news_channel.member_count
         self._channel_members: list[Member] = self._news_channel.members
 
@@ -365,7 +364,7 @@ class CommandProcessor:
             await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
 
-command_processor = CommandProcessor()
+command_processor = CommandProcessor(_client=client)
 _commands_lookup: dict[str, Callable] = {
     '!commands': command_processor.send_commands,
     '!article-by-uuid': command_processor.articles_by_uuid,
