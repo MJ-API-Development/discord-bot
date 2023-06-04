@@ -2,7 +2,7 @@ from pydantic import BaseSettings, Field
 
 
 class Logging(BaseSettings):
-    filename: str = Field(default="reddit.log")
+    filename: str = Field(default="discord.log")
 
 
 class APPSettings(BaseSettings):
