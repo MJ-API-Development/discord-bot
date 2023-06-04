@@ -31,121 +31,18 @@ Use the following commands in order to access Financial & Business News:
 Note: The above commands are rate-limited to one request per minute.
 """
 
-async def send_commands(message):
-    # channel = client.get_channel(news_channel_id)
-    await message.author.send(channel_message)
-    # await channel.send(channel_message)
-async def articles_by_uuid(message):
-    try:
-        uuid = message.content.split(" ")[1].strip()
-        if uuid:
-            channel = client.get_channel(news_channel_id)
-            article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
-            mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending Article to your DM")
-            await message.author.send(f"[{article['title']}]({article['link']})")
-        else:
-            await message.author.send(
-                "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
-    except IndexError:
-        await message.author.send(
-            "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
 
-async def articles_bounded(message):
-    try:
-        count: str = message.content.split(" ")[1].strip()
-        if count.isdecimal():
-            _count: int = int(count)
-            # Use the date_obj for further processing
-            channel = client.get_channel(news_channel_id)
-            articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
-            _count: int = len(articles)
-            mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
-        else:
-            await message.author.send(
-                "Please supply Total Articles to retrieve Example !articles-bounded 10")
+# noinspection PyMethodMayBeStatic
+class CommandProcessor:
+    def __init__(self):
+        pass
 
-    except IndexError:
-        await message.author.send(
-            "Please supply Total Articles to retrieve Example !articles-bounded 10")
-
-async def articles_by_date(message):
-    try:
-        _date: str = message.content.split(" ")[1].strip()
-        # Use the date_obj for further processing
-        channel = client.get_channel(news_channel_id)
-        articles: list[dict[str, str]] = await tasks_executor.articles_by_date(_date=_date)
-        _count: int = len(articles)
-        mention = message.author.mention
-        await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-        await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
-
-    except IndexError:
-        await message.author.send(
-            "Please supply Page Number with this command example !articles-by-publisher bloomberg")
-
-async def articles_by_publisher(message):
-    try:
-        _publisher: str = message.content.split(" ")[1].strip()
-        if _publisher:
-            _publisher = _publisher.lower()
-            channel = client.get_channel(news_channel_id)
-            articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
-            _count: int = len(articles)
-            mention = message.author.mention
-            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
-        else:
-            await message.author.send(
-                "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
-    except IndexError:
-        await message.author.send(
-            "Please supply Page Number with this command example !articles-by-publisher bloomberg")
-
-
-_commands_lookup: dict[str, Callable] = {
-    '!commands': send_commands,
-    '!article-by-uuid': articles_by_uuid,
-    '!articles-bounded': " ",
-    '!articles-by-date': " ",
-    '!articles-by-publisher': "",
-    '!articles-paged': " ",
-    '!articles-by-ticker':  "",
-    '!articles-by-company': " ",
-    '!articles-by-exchange': " ",
-    '!companies-by-exchange': " ",
-    '!tickers-by-exchange': " ",
-    '!list-publishers': " ",
-    '!list-exchanges': " ",
-}
-
-@client.event
-async def on_ready():
-    channel = client.get_channel(news_channel_id)
-    if channel:
-        await channel.send('Welcome to Business & Financial News API Channel')
-        await channel.send(channel_message)
-    else:
-        print('Invalid channel ID.')
-
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    await process_message(message)
-
-
-
-async def process_message(message):
-    if message.content.startswith('!commands'):
+    async def send_commands(self, message):
         # channel = client.get_channel(news_channel_id)
         await message.author.send(channel_message)
         # await channel.send(channel_message)
 
-    elif message.content.startswith('!article-by-uuid'):
+    async def articles_by_uuid(self, message):
         try:
             uuid = message.content.split(" ")[1].strip()
             if uuid:
@@ -161,7 +58,7 @@ async def process_message(message):
             await message.author.send(
                 "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
 
-    elif message.content.startswith('!articles-bounded'):
+    async def articles_bounded(self, message):
         try:
             count: str = message.content.split(" ")[1].strip()
             if count.isdecimal():
@@ -181,7 +78,7 @@ async def process_message(message):
             await message.author.send(
                 "Please supply Total Articles to retrieve Example !articles-bounded 10")
 
-    elif message.content.startswith('!articles-by-date'):
+    async def articles_by_date(self, message):
         try:
             _date: str = message.content.split(" ")[1].strip()
             # Use the date_obj for further processing
@@ -191,12 +88,11 @@ async def process_message(message):
             mention = message.author.mention
             await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
             await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
-
         except IndexError:
             await message.author.send(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
-    elif message.content.startswith('!articles-by-publisher'):
+    async def articles_by_publisher(self, message):
         try:
             _publisher: str = message.content.split(" ")[1].strip()
             if _publisher:
@@ -214,7 +110,7 @@ async def process_message(message):
             await message.author.send(
                 "Please supply Page Number with this command example !articles-by-publisher bloomberg")
 
-    elif message.content.startswith('!articles-paged'):
+    async def articles_paged(self, message):
         try:
             _page_number: str = message.content.split(" ")[1].strip()
             if _page_number.isdecimal():
@@ -232,7 +128,7 @@ async def process_message(message):
         except IndexError:
             await message.author.send("Please supply Page Number with this command example !articles-paged 1")
 
-    elif message.content.startswith('!articles-by-ticker'):
+    async def articles_by_ticker(self, message):
         try:
             _ticker: str = message.content.split(" ")[1].strip()
             if _ticker:
@@ -249,7 +145,7 @@ async def process_message(message):
         except IndexError:
             await message.author.send("Please supply the ticker symbols example !articles-by-ticker MSFT")
 
-    elif message.content.startswith('!articles-by-company'):
+    async def articles_by_company(self, message):
         try:
             _company: str = message.content.split(" ")[1].strip()
             if _company:
@@ -261,7 +157,7 @@ async def process_message(message):
         except IndexError:
             await message.author.send("Please supply the Company Name Example !articles-by-company Apple")
 
-    elif message.content.startswith('!articles-by-exchange'):
+    async def articles_by_exchange(self, message):
         try:
             _exchange: str = message.content.split(" ")[1].strip()
             if _exchange:
@@ -284,7 +180,7 @@ async def process_message(message):
         except IndexError:
             await message.author.send("Please supply the Exchange Code Example !!articles-by-exchange US")
 
-    elif message.content.startswith('!companies-by-exchange'):
+    async def companies_by_exchange(self, message):
         try:
             _exchange_code: str = message.content.split(" ")[1].strip()
             if _exchange_code:
@@ -308,7 +204,7 @@ async def process_message(message):
         except IndexError:
             await message.author.send("Please supply the Exchange Code Example !companies-by-exchange US")
 
-    elif message.content.startswith('!tickers-by-exchange'):
+    async def tickers_by_exchange(self, message):
         try:
             _exchange_code: str = message.content.split(" ")[1].strip()
             if _exchange_code:
@@ -330,7 +226,7 @@ async def process_message(message):
         except IndexError:
             await message.author.send("Please supply the Exchange Code Example !tickers-by-exchange US")
 
-    elif message.content.startswith('!list-publishers'):
+    async def list_publishers(self, message):
         channel = client.get_channel(news_channel_id)
         publishers = await tasks_executor.list_publishers()
         mention = message.author.mention
@@ -344,7 +240,7 @@ async def process_message(message):
         for chunk in chunks:
             await message.author.send(chunk)
 
-    elif message.content.startswith('!list-exchanges'):
+    async def list_exchanges(self, message):
         print("listing publishers")
         channel = client.get_channel(news_channel_id)
         exchanges = await tasks_executor.list_exchanges()
@@ -357,6 +253,41 @@ async def process_message(message):
         # Send each chunk as a separate message
         for chunk in chunks:
             await message.author.send(chunk)
+
+
+command_processor = CommandProcessor()
+_commands_lookup: dict[str, Callable] = {
+    '!commands': command_processor.send_commands,
+    '!article-by-uuid': command_processor.articles_by_uuid,
+    '!articles-bounded': command_processor.articles_bounded,
+    '!articles-by-date': command_processor.articles_by_date,
+    '!articles-by-publisher': command_processor.articles_by_publisher,
+    '!articles-paged': command_processor.articles_paged,
+    '!articles-by-ticker': command_processor.articles_by_ticker,
+    '!articles-by-company': command_processor.articles_by_company,
+    '!articles-by-exchange': command_processor.articles_by_exchange,
+    '!companies-by-exchange': command_processor.companies_by_exchange,
+    '!tickers-by-exchange': command_processor.tickers_by_exchange,
+    '!list-publishers': command_processor.list_publishers,
+    '!list-exchanges': command_processor.list_exchanges,
+}
+
+
+@client.event
+async def on_ready():
+    channel = client.get_channel(news_channel_id)
+    if channel:
+        await channel.send('Welcome to Business & Financial News API Channel')
+        await channel.send(channel_message)
+    else:
+        print('Invalid channel ID.')
+
+
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+    await _commands_lookup[message.content.split(" ")[0]](message)
 
 
 @client.event
