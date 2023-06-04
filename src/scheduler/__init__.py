@@ -52,13 +52,21 @@ async def on_message(message):
         # await channel.send(channel_message)
 
     elif message.content.startswith('!article-by-uuid'):
-        uuid = message.content.split(" ")[1].strip()
-        if uuid:
-            # TODO - fetch articles by uuid
-            pass
-        else:
-            # TODO - raise error UUID not present
-            pass
+        try:
+            uuid = message.content.split(" ")[1].strip()
+            if uuid:
+                channel = client.get_channel(news_channel_id)
+                article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
+                mention = message.author.mention
+                await channel.send(f"Hi {mention}, I am sending Article to your DM")
+                await message.author.send(f"[{article['title']}]({article['link']})")
+            else:
+                await message.author.send(
+                    "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
+        except IndexError:
+            await message.author.send(
+                "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
+
     elif message.content.startswith('!articles-bounded'):
         try:
             count: str = message.content.split(" ")[1].strip()
