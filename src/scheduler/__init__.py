@@ -1,5 +1,6 @@
 import datetime
 import json
+from typing import Callable
 
 from src.config import config_instance
 import discord
@@ -30,6 +31,95 @@ Use the following commands in order to access Financial & Business News:
 Note: The above commands are rate-limited to one request per minute.
 """
 
+async def send_commands(message):
+    # channel = client.get_channel(news_channel_id)
+    await message.author.send(channel_message)
+    # await channel.send(channel_message)
+async def articles_by_uuid(message):
+    try:
+        uuid = message.content.split(" ")[1].strip()
+        if uuid:
+            channel = client.get_channel(news_channel_id)
+            article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending Article to your DM")
+            await message.author.send(f"[{article['title']}]({article['link']})")
+        else:
+            await message.author.send(
+                "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
+    except IndexError:
+        await message.author.send(
+            "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
+
+async def articles_bounded(message):
+    try:
+        count: str = message.content.split(" ")[1].strip()
+        if count.isdecimal():
+            _count: int = int(count)
+            # Use the date_obj for further processing
+            channel = client.get_channel(news_channel_id)
+            articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
+            _count: int = len(articles)
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+        else:
+            await message.author.send(
+                "Please supply Total Articles to retrieve Example !articles-bounded 10")
+
+    except IndexError:
+        await message.author.send(
+            "Please supply Total Articles to retrieve Example !articles-bounded 10")
+
+async def articles_by_date(message):
+    try:
+        _date: str = message.content.split(" ")[1].strip()
+        # Use the date_obj for further processing
+        channel = client.get_channel(news_channel_id)
+        articles: list[dict[str, str]] = await tasks_executor.articles_by_date(_date=_date)
+        _count: int = len(articles)
+        mention = message.author.mention
+        await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+        await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+
+    except IndexError:
+        await message.author.send(
+            "Please supply Page Number with this command example !articles-by-publisher bloomberg")
+
+async def articles_by_publisher(message):
+    try:
+        _publisher: str = message.content.split(" ")[1].strip()
+        if _publisher:
+            _publisher = _publisher.lower()
+            channel = client.get_channel(news_channel_id)
+            articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
+            _count: int = len(articles)
+            mention = message.author.mention
+            await channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await message.author.send([f"[{article['title']}]({article['link']})" for article in articles])
+        else:
+            await message.author.send(
+                "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
+    except IndexError:
+        await message.author.send(
+            "Please supply Page Number with this command example !articles-by-publisher bloomberg")
+
+
+_commands_lookup: dict[str, Callable] = {
+    '!commands': send_commands,
+    '!article-by-uuid': articles_by_uuid,
+    '!articles-bounded': " ",
+    '!articles-by-date': " ",
+    '!articles-by-publisher': "",
+    '!articles-paged': " ",
+    '!articles-by-ticker':  "",
+    '!articles-by-company': " ",
+    '!articles-by-exchange': " ",
+    '!companies-by-exchange': " ",
+    '!tickers-by-exchange': " ",
+    '!list-publishers': " ",
+    '!list-exchanges': " ",
+}
 
 @client.event
 async def on_ready():
@@ -45,7 +135,11 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    await process_message(message)
 
+
+
+async def process_message(message):
     if message.content.startswith('!commands'):
         # channel = client.get_channel(news_channel_id)
         await message.author.send(channel_message)
