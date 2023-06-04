@@ -40,7 +40,7 @@ class CommandProcessor:
         self._chunk_size: int = 1000
         self._users_flags: set[str] = set()
         self._news_channel = self._client.get_channel(news_channel_id)
-        self._client.clear()
+        # self._client.clear()
         self.total_members = self._news_channel.member_count
         self._channel_members: list[Member] = self._news_channel.members
 
