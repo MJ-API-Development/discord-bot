@@ -27,6 +27,7 @@ Use the following commands in order to access Financial & Business News:
     !tickers-by-exchange exchange_code
     !list-publishers
     !list-exchanges
+------------------------------------------------------------------------    
 ------------------------------------------------------------------------
 """
 
