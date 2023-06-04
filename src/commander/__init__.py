@@ -10,7 +10,7 @@ from src.tasks import tasks_executor
 intents = discord.Intents.all()
 intents.message_content = True
 
-client: Client = Client(intents=intents)
+client = discord.Client(intents=intents)
 news_channel_id: int = config_instance().DISCORD_SETTINGS.NEWS_API_CHANNEL_ID
 
 channel_message: str = f"""
