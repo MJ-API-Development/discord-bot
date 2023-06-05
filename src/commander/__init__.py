@@ -45,6 +45,7 @@ class CommandProcessor:
         :param resource_key:
         :return:
         """
+        # TODO send tickers by link
         return self._resource_links.get(resource_key)
 
     async def set_resource_by_key(self, resource: dict[str, str | list[dict[str, str]]]) -> str:
