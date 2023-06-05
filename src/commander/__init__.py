@@ -61,7 +61,7 @@ class CommandProcessor:
     async def send_commands(self, message: Message):
         # channel = client.get_channel(news_channel_id)
         _mention = message.author.mention
-        news_channel = client.get_channel(news_channel_id)
+        _ = client.get_channel(news_channel_id)
 
         if _mention not in self._users_flags:
             self._users_flags.add(message.author.mention)
@@ -243,7 +243,7 @@ class CommandProcessor:
     async def articles_by_company(self, message: Message):
         try:
             _company: str = message.content.split(" ")[1].strip()
-            news_channel = client.get_channel(news_channel_id)
+            _ = client.get_channel(news_channel_id)
             if _company:
                 _company = _company.lower()
                 await message.author.send("Endpoint still under development")
