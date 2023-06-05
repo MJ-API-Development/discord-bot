@@ -354,6 +354,7 @@ class CommandProcessor:
             for chunk in [formatted_publishers[i:i + self._chunk_size]
                           for i in range(0, len(formatted_publishers), self._chunk_size)]:
                 await message.author.send(chunk)
+            self._users_flags.remove(mention)
         else:
             await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
