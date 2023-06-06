@@ -5,6 +5,8 @@ from uuid import uuid4
 from src.config import config_instance
 import discord
 from discord import Message, Client, Member
+
+from src.logger import init_logger
 from src.tasks import tasks_executor
 
 intents = discord.Intents.all()
@@ -35,6 +37,7 @@ Use the following commands in order to access Financial & Business News:
 # noinspection PyMethodMayBeStatic
 class CommandProcessor:
     def __init__(self, _client=client):
+        self._logger = init_logger(self.__class__.__name__)
         self._client = _client
         self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
         self._chunk_size: int = 1000
@@ -60,6 +63,8 @@ class CommandProcessor:
 
     async def send_commands(self, message: Message):
         # channel = client.get_channel(news_channel_id)
+        self._logger.info(f'sending commands for: {message.author.mention}')
+
         _mention = message.author.mention
         _ = client.get_channel(news_channel_id)
 
@@ -74,6 +79,8 @@ class CommandProcessor:
 
     async def articles_by_uuid(self, message: Message):
         try:
+            self._logger.info(f'listing articles by uuid for: {message.author.mention}')
+
             uuid = message.content.split(" ")[1].strip()
             news_channel = client.get_channel(news_channel_id)
 
@@ -98,6 +105,8 @@ class CommandProcessor:
 
     async def articles_bounded(self, message: Message):
         try:
+            self._logger.info(f'listing articles bounded for: {message.author.mention}')
+
             count: str = message.content.split(" ")[1].strip()
             if count.isdecimal():
                 mention = message.author.mention
@@ -128,6 +137,8 @@ class CommandProcessor:
 
     async def articles_by_date(self, message: Message):
         try:
+            self._logger.info(f'listing articles by date for: {message.author.mention}')
+
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
@@ -154,6 +165,7 @@ class CommandProcessor:
 
     async def articles_by_publisher(self, message: Message):
         try:
+            self._logger.info(f'listing articles by publisher for: {message.author.mention}')
             _publisher: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
@@ -184,6 +196,7 @@ class CommandProcessor:
 
     async def articles_paged(self, message: Message):
         try:
+            self._logger.info(f'listing paged articles for: {message.author.mention}')
             _page_number: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
@@ -213,6 +226,7 @@ class CommandProcessor:
 
     async def articles_by_ticker(self, message: Message):
         try:
+            self._logger.info(f'listing articles by ticker for: {message.author.mention}')
             _ticker: str = message.content.split(" ")[1].strip()
 
             mention = message.author.mention
@@ -242,6 +256,7 @@ class CommandProcessor:
 
     async def articles_by_company(self, message: Message):
         try:
+            self._logger.info(f'listing articles by company for {message.author.mention}')
             _company: str = message.content.split(" ")[1].strip()
             _ = client.get_channel(news_channel_id)
             if _company:
@@ -255,6 +270,7 @@ class CommandProcessor:
 
     async def articles_by_exchange(self, message: Message):
         try:
+            self._logger.info(f'listing articles by exchange for {message.author.mention}')
             _exchange: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
@@ -283,6 +299,7 @@ class CommandProcessor:
 
     async def companies_by_exchange(self, message: Message):
         try:
+            self._logger.info(f'listing companies for {message.author.mention}')
             _exchange_code: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
@@ -313,6 +330,7 @@ class CommandProcessor:
 
     async def tickers_by_exchange(self, message: Message):
         try:
+            self._logger.info(f'listing tickers for: {message.author.mention}')
             _exchange_code: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
@@ -336,11 +354,11 @@ class CommandProcessor:
             else:
                 await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
-        except IndexError as e:
+        except IndexError:
             await message.reply("Please supply the Exchange Code Example !tickers-by-exchange US")
 
     async def list_publishers(self, message: Message):
-
+        self._logger.info(f'listing publishers for: {message.author.mention}')
         mention = message.author.mention
         news_channel = client.get_channel(news_channel_id)
 
@@ -359,9 +377,9 @@ class CommandProcessor:
         else:
             await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
-    async def list_exchanges(self, message):
-        print("listing Exchanges")
+    async def list_exchanges(self, message: Message):
 
+        self._logger.info(f'listing exchanges for: {message.author.mention}')
         mention = message.author.mention
         news_channel = client.get_channel(news_channel_id)
 
