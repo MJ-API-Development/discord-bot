@@ -72,7 +72,7 @@ class CommandProcessor:
 
     async def admin_commands(self, message: Message):
 
-        if message.author.id == config_instance().DISCORD_SETTINGS.ADMIN_ID:
+        if str(message.author.id) == config_instance().DISCORD_SETTINGS.ADMIN_ID:
             sub_command = message.content.split(" ")[1].strip()
             if sub_command.casefold() == "stop-bot":
                 self.admin_flags.add(STOP_FLAG)
@@ -85,6 +85,9 @@ class CommandProcessor:
                 await message.reply("flags cleared")
             else:
                 pass
+        else:
+            _id: int = message.author.id
+            await message.reply(f"User not authorized : {_id}")
 
     async def send_commands(self, message: Message):
         # channel = client.get_channel(news_channel_id)
