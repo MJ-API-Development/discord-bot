@@ -76,11 +76,13 @@ class CommandProcessor:
             sub_command = message.content.split(" ")[1].strip()
             if sub_command.casefold() == "stop-bot":
                 self.admin_flags.add(STOP_FLAG)
+                await message.reply("bot has been paused")
             elif sub_command.casefold() == "rate-limit":
                 self.admin_flags.add(INCREASE_RATE_LIMIT_FLAG)
-
+                await message.reply("rate limit enabled")
             elif sub_command.casefold() == "reset-flags":
                 self.admin_flags.clear()
+                await message.reply("flags cleared")
             else:
                 pass
 
@@ -464,6 +466,7 @@ async def on_message(message: Message):
     try:
         if STOP_FLAG in command_processor.admin_flags:
             await message.reply("Server Has been paused by admin")
+            return
 
         if INCREASE_RATE_LIMIT_FLAG in command_processor.admin_flags:
             await asyncio.sleep(ADDED_RATE_LIMIT)
