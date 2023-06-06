@@ -467,12 +467,13 @@ async def on_message(message: Message):
         return
 
     try:
-        if STOP_FLAG in command_processor.admin_flags:
-            await message.reply("Server Has been paused by admin")
-            return
+        if not message.content.startswith("!admin"):
+            if STOP_FLAG in command_processor.admin_flags:
+                await message.reply("Server Has been paused by admin")
+                return
 
-        if INCREASE_RATE_LIMIT_FLAG in command_processor.admin_flags:
-            await asyncio.sleep(ADDED_RATE_LIMIT)
+            if INCREASE_RATE_LIMIT_FLAG in command_processor.admin_flags:
+                await asyncio.sleep(ADDED_RATE_LIMIT)
 
         await _commands_lookup.get(message.content.split(" ")[0], command_processor.send_commands)(message)
         # await _commands_lookup[message.content.split(" ")[0]](message)
