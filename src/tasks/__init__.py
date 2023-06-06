@@ -18,13 +18,16 @@ class TasksExecutor:
             create a list of articles that can be used to send tweets
         :return:
         """
+        if count > 99:
+            return []
+
         self._logger.info("Fetching Articles from API")
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-bounded/{count}"
         try:
             return await self.do_fetch_articles(request_url)
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
-            return None
+            return []
 
     async def list_publishers(self) -> list[str] | None:
         """
@@ -125,6 +128,9 @@ class TasksExecutor:
         self._logger.info("Fetching Articles By Page Number from API")
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-page/{number}"
         try:
+            if number > 99:
+                return []
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(url=request_url, params=self._params) as response:
                     response.raise_for_status()
