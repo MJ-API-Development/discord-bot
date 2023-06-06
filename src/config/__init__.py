@@ -30,6 +30,7 @@ class DiscordSettings(BaseSettings):
     LINKED_ROLES_VERIFICATIONS_URL: str = Field(..., env='DISCORD_LINKED_ROLES_VERIFICATIONS_URL')
     TOKEN: str = Field(..., env='DISCORD_TOKEN')
     NEWS_API_CHANNEL_ID: int = Field(..., env='NEWS_API_CHANNEL_ID')
+    ADMIN_ID: str = Field(..., env='DISCORD_ADMIN_ID')
 
     class Config:
         env_file = '.env.development'

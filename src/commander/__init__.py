@@ -1,4 +1,4 @@
-
+import asyncio
 import json
 from typing import Callable
 from uuid import uuid4
@@ -33,16 +33,24 @@ Use the following commands in order to access Financial & Business News:
 ------------------------------------------------------------------------    
 ------------------------------------------------------------------------
 """
+ADDED_RATE_LIMIT: int = 60
+STOP_FLAG: str = "admin_stop"
+INCREASE_RATE_LIMIT_FLAG: str = "increase_rate_limit"
 
 
 # noinspection PyMethodMayBeStatic
 class CommandProcessor:
+    """
+
+    """
+
     def __init__(self, _client=client):
         self._logger = init_logger(self.__class__.__name__)
         self._client = _client
         self._resource_links: dict[str, dict[str, str | list[dict[str, str]]]] = {}
         self._chunk_size: int = 1000
-        self._users_flags: set[str] = set()
+        self._rate_limit_flags: set[str] = set()
+        self.admin_flags: set[str] = set()
 
     async def get_resource_by_key(self, resource_key: str) -> dict[str, str | list[dict[str, str]]]:
         """
@@ -62,6 +70,20 @@ class CommandProcessor:
         self._resource_links[resource_key] = resource
         return resource_key
 
+    async def admin_commands(self, message: Message):
+
+        if message.author.id == config_instance().DISCORD_SETTINGS.ADMIN_ID:
+            sub_command = message.content.split(" ")[1].strip()
+            if sub_command.casefold() == "stop-bot":
+                self.admin_flags.add(STOP_FLAG)
+            elif sub_command.casefold() == "rate-limit":
+                self.admin_flags.add(INCREASE_RATE_LIMIT_FLAG)
+
+            elif sub_command.casefold() == "reset-flags":
+                self.admin_flags.clear()
+            else:
+                pass
+
     async def send_commands(self, message: Message):
         # channel = client.get_channel(news_channel_id)
         self._logger.info(f'sending commands for: {message.author.mention}')
@@ -69,10 +91,10 @@ class CommandProcessor:
         _mention = message.author.mention
         _ = client.get_channel(news_channel_id)
 
-        if _mention not in self._users_flags:
-            self._users_flags.add(message.author.mention)
+        if _mention not in self._rate_limit_flags:
+            self._rate_limit_flags.add(message.author.mention)
             await message.author.send(channel_message)
-            self._users_flags.remove(message.author.mention)
+            self._rate_limit_flags.remove(message.author.mention)
         else:
             await message.reply(f" {_mention} Wait until your previous command finished executing")
 
@@ -90,11 +112,11 @@ class CommandProcessor:
                 article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
                 mention = message.author.mention
 
-                if mention not in self._users_flags:
-                    self._users_flags.add(message.author.mention)
+                if mention not in self._rate_limit_flags:
+                    self._rate_limit_flags.add(message.author.mention)
                     await news_channel.send(f"Hi {mention}, I am sending Article to your DM")
                     await message.author.send(f"[{article['title']}]({article['link']})")
-                    self._users_flags.remove(message.author.mention)
+                    self._rate_limit_flags.remove(message.author.mention)
                 else:
                     await message.reply(f" {mention} Wait until your previous command finished executing")
             else:
@@ -113,11 +135,11 @@ class CommandProcessor:
                 mention = message.author.mention
                 news_channel = client.get_channel(news_channel_id)
 
-                if mention not in self._users_flags:
-                    self._users_flags.add(mention)
+                if mention not in self._rate_limit_flags:
+                    self._rate_limit_flags.add(mention)
                     _count: int = int(count)
                     if _count > 99:
-                        self._users_flags.remove(mention)
+                        self._rate_limit_flags.remove(mention)
                         await message.reply(f"Cannot send more than 99 articles")
                         return
                     # Use the date_obj for further processing
@@ -129,7 +151,7 @@ class CommandProcessor:
                     await message.author.send(f"Sending {_count} articles")
                     for article in formatted_articles:
                         await message.author.send(article)
-                    self._users_flags.remove(mention)
+                    self._rate_limit_flags.remove(mention)
                 else:
                     await message.reply(f" {mention} Wait until your previous command finished executing")
             else:
@@ -147,8 +169,8 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 _date: str = message.content.split(" ")[1].strip()
                 # Use the date_obj for further processing
 
@@ -160,7 +182,7 @@ class CommandProcessor:
                 await message.author.send(f"Sending {_count} articles")
                 for article in formatted_articles:
                     await message.author.send(article)
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f" {mention} Wait until your previous command finished executing")
 
@@ -175,11 +197,11 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 if _publisher:
                     _publisher = _publisher.lower()
-                    self._users_flags.add(mention)
+                    self._rate_limit_flags.add(mention)
                     articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
                     _count: int = len(articles)
 
@@ -191,7 +213,7 @@ class CommandProcessor:
                 else:
                     await message.author.send(
                         "Please supply Publisher Name with this command example !articles-by-publisher bloomberg")
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f"Hi {mention}, Wait until your previous command finishes executing")
 
@@ -206,8 +228,8 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 if _page_number.isdecimal():
                     _page_number: int = int(_page_number)
                 else:
@@ -222,7 +244,7 @@ class CommandProcessor:
                 for article in formatted_articles:
                     await message.author.send(article)
 
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f"Hi {mention}, Wait until your previous command finished executing")
 
@@ -237,22 +259,23 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 if _ticker:
                     _ticker = _ticker.lower()
 
                     articles: list[dict[str, str]] = await tasks_executor.articles_by_ticker(ticker=_ticker)
                     _count: int = len(articles)
 
-                    await news_channel.send(f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
+                    await news_channel.send(
+                        f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
                     formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
                     await message.author.send(f"Sending {_count} articles")
                     for article in formatted_articles:
                         await message.author.send(article)
                 else:
                     await message.reply("Please supply the ticker symbols example !articles-by-ticker MSFT")
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
@@ -280,8 +303,8 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 if _exchange:
                     _exchange = _exchange.lower()
                     companies = await tasks_executor.articles_by_exchange(exchange_code=_exchange)
@@ -295,7 +318,7 @@ class CommandProcessor:
 
                 else:
                     await message.reply("Please supply the Exchange Code Example !!articles-by-exchange US")
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
@@ -309,8 +332,8 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 if _exchange_code:
                     _exchange_code = _exchange_code.lower()
 
@@ -326,7 +349,7 @@ class CommandProcessor:
 
                 else:
                     await message.reply("Please supply the Exchange Code Example !companies-by-exchange US")
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
@@ -340,8 +363,8 @@ class CommandProcessor:
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
-            if mention not in self._users_flags:
-                self._users_flags.add(mention)
+            if mention not in self._rate_limit_flags:
+                self._rate_limit_flags.add(mention)
                 if _exchange_code:
                     _exchange_code = _exchange_code.lower()
 
@@ -355,7 +378,7 @@ class CommandProcessor:
                         await message.author.send(chunk)
                 else:
                     await message.reply("Please supply the Exchange Code Example !tickers-by-exchange US")
-                self._users_flags.remove(mention)
+                self._rate_limit_flags.remove(mention)
             else:
                 await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
@@ -367,8 +390,8 @@ class CommandProcessor:
         mention = message.author.mention
         news_channel = client.get_channel(news_channel_id)
 
-        if mention not in self._users_flags:
-            self._users_flags.add(mention)
+        if mention not in self._rate_limit_flags:
+            self._rate_limit_flags.add(mention)
             publishers = await tasks_executor.list_publishers()
             await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
             # Assuming the JSON string is stored in the 'publishers' variable
@@ -378,7 +401,7 @@ class CommandProcessor:
             for chunk in [formatted_publishers[i:i + self._chunk_size]
                           for i in range(0, len(formatted_publishers), self._chunk_size)]:
                 await message.author.send(chunk)
-            self._users_flags.remove(mention)
+            self._rate_limit_flags.remove(mention)
         else:
             await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
@@ -388,8 +411,8 @@ class CommandProcessor:
         mention = message.author.mention
         news_channel = client.get_channel(news_channel_id)
 
-        if mention not in self._users_flags:
-            self._users_flags.add(mention)
+        if mention not in self._rate_limit_flags:
+            self._rate_limit_flags.add(mention)
             exchanges = await tasks_executor.list_exchanges()
             await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
             # Assuming the JSON string is stored in the 'publishers' variable
@@ -399,13 +422,14 @@ class CommandProcessor:
                           for i in range(0, len(formatted_exchanges), self._chunk_size)]:
                 await message.author.send(chunk)
 
-            self._users_flags.remove(mention)
+            self._rate_limit_flags.remove(mention)
         else:
             await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
 
 command_processor = CommandProcessor(_client=client)
 _commands_lookup: dict[str, Callable] = {
+    '!admin': command_processor.admin_commands,
     '!commands': command_processor.send_commands,
     '!article-by-uuid': command_processor.articles_by_uuid,
     '!articles-bounded': command_processor.articles_bounded,
@@ -432,13 +456,18 @@ async def on_ready():
 
 
 @client.event
-async def on_message(message):
-
+async def on_message(message: Message):
     # Prevent sending message to itself
     if message.author == client.user:
         return
 
     try:
+        if STOP_FLAG in command_processor.admin_flags:
+            await message.reply("Server Has been paused by admin")
+
+        if INCREASE_RATE_LIMIT_FLAG in command_processor.admin_flags:
+            await asyncio.sleep(ADDED_RATE_LIMIT)
+
         await _commands_lookup.get(message.content.split(" ")[0], command_processor.send_commands)(message)
         # await _commands_lookup[message.content.split(" ")[0]](message)
     except IndexError:
