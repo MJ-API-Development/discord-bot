@@ -151,6 +151,9 @@ class TasksExecutor:
         :return:
         """
         try:
+            if publisher.index("-"):
+                publisher = publisher.replace("-", " ")
+
             request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-publisher/{publisher}"
             return await self.do_fetch_articles(request_url)
         except aiohttp.ClientError as e:

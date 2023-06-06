@@ -116,6 +116,10 @@ class CommandProcessor:
                 if mention not in self._users_flags:
                     self._users_flags.add(mention)
                     _count: int = int(count)
+                    if _count > 99:
+                        self._users_flags.remove(mention)
+                        await message.reply(f"Cannot send more than 99 articles")
+                        return
                     # Use the date_obj for further processing
                     articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
                     _count: int = len(articles)
