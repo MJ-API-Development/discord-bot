@@ -468,6 +468,7 @@ async def on_message(message: Message):
 
     try:
         if not message.content.startswith("!admin"):
+            # this enables admin flags for everyone else except admin
             if STOP_FLAG in command_processor.admin_flags:
                 await message.reply("Server Has been paused by admin")
                 return
