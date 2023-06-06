@@ -2,10 +2,11 @@
 import json
 from typing import Callable
 from uuid import uuid4
-from src.config import config_instance
-import discord
-from discord import Message, Client, Member
 
+import discord
+from discord import Message
+
+from src.config import config_instance
 from src.logger import init_logger
 from src.tasks import tasks_executor
 

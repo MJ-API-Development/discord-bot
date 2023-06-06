@@ -64,9 +64,7 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Exchanges from API")
-
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/stocks/exchange/code/{exchange_code}"
-
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url=request_url, params=self._params) as response:
@@ -107,12 +105,9 @@ class TasksExecutor:
         :return:
         """
         self._logger.info("Fetching Exchanges from API")
-
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-exchange/{exchange_code}"
-
         try:
             return await self.do_fetch_articles(request_url)
-
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return None
@@ -120,10 +115,8 @@ class TasksExecutor:
     async def articles_by_ticker(self, ticker: str) -> list[dict]:
         self._logger.info("Fetching Articles By Ticker from API")
         request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/articles-by-ticker/{ticker}"
-
         try:
             return await self.do_fetch_articles(request_url)
-
         except aiohttp.ClientError as e:
             self._logger.error(f"Error fetching articles: {str(e)}")
             return []

@@ -7,7 +7,6 @@ class Stock(BaseModel):
 
         Stock Model , Same as the Stock Model in the database
         see StockAPI
-
     """
     exchange_id: str
     exchange_code: str
