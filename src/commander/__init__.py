@@ -336,7 +336,7 @@ class CommandProcessor:
             else:
                 await message.reply(f"Hi {mention}, please wait until previous command finishes")
 
-        except IndexError:
+        except IndexError as e:
             await message.reply("Please supply the Exchange Code Example !tickers-by-exchange US")
 
     async def list_publishers(self, message: Message):
