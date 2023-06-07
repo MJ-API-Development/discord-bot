@@ -77,9 +77,13 @@ class CommandProcessor:
             if sub_command.casefold() == "stop-bot":
                 self.admin_flags.add(STOP_FLAG)
                 await message.reply("bot has been paused")
+            if sub_command.casefold() == "reset-bot":
+                self.admin_flags.remove(STOP_FLAG)
             elif sub_command.casefold() == "rate-limit":
                 self.admin_flags.add(INCREASE_RATE_LIMIT_FLAG)
                 await message.reply("rate limit enabled")
+            elif sub_command.casefold() == "reset-limit":
+                self.admin_flags.remove(INCREASE_RATE_LIMIT_FLAG)
             elif sub_command.casefold() == "reset-flags":
                 self.admin_flags.clear()
                 await message.reply("flags cleared")
