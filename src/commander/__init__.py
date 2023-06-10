@@ -151,8 +151,12 @@ class CommandProcessor:
             if uuid:
                 article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
                 mention = message.author.mention
-                await news_channel.send(f"Hi {mention}, I am sending Article to your DM")
-                await message.author.send(f"[{article['title']}]({article['link']})")
+                resource_key = await self.set_resource_by_key(resource=article)
+                resource_link = await self.create_resource_link(resource_key=resource_key)
+
+                await message.reply(f"Hi {mention}, I am sending the Article to your DM")
+                await message.reply(f"You can also download your article from:")
+                await message.reply(resource_link)
             else:
                 await message.reply(
                     "Please supply Article UUID to retrieve Example !article-by-uuid' 10")
@@ -186,8 +190,9 @@ class CommandProcessor:
                 _count: int = len(articles)
                 resource_key = await self.set_resource_by_key(resource=articles)
                 resource_link = await self.create_resource_link(resource_key=resource_key)
-                await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await news_channel.send(f"You can also download your articles from : {resource_link}")
+                await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await message.reply(f"You can also download your articles from:")
+                await message.reply(resource_link)
 
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
 
@@ -218,8 +223,9 @@ class CommandProcessor:
 
             mention = message.author.mention
             _count: int = len(articles)
-            await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await news_channel.send(f"You can also download your articles from : {resource_link}")
+            await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await message.reply(f"You can also download your articles from:")
+            await message.reply(resource_link)
 
             formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
             await message.author.send(f"Sending {_count} articles")
