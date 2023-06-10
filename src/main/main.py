@@ -33,20 +33,19 @@ task_started = False
 logger = init_logger("Discord-BOt")
 
 
-# asyncio.create_task(client.start(token=settings.TOKEN))
+asyncio.create_task(client.start(token=settings.TOKEN))
 
-@app.on_event("startup")
-async def startup_event():
-    global task_started
-    if not task_started:
-        # Set the flag to indicate that the task has started
-        task_started = True
-
-        # Start the task
-        asyncio.create_task(client.start(token=settings.TOKEN))
-        logger.info("Discord bot running")
-    else:
-        logger.info("Task already started, skipping...")
+# @app.on_event("startup")
+# async def startup_event():
+#     global task_started
+#     if not task_started:
+#         # Set the flag to indicate that the task has started
+#         task_started = True
+#         # Start the task
+#         asyncio.create_task(client.start(token=settings.TOKEN))
+#         logger.info("Discord bot running")
+#     else:
+#         logger.info("Task already started, skipping...")
 
 
 @app.get('/resource/{path}')
