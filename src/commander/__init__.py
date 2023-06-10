@@ -155,7 +155,7 @@ class CommandProcessor:
                 resource_link = await self.create_resource_link(resource_key=resource_key)
 
                 await message.reply(f"Hi {mention}, I am sending the Article to your DM")
-                await message.reply(f"You can also download your article from:")
+                await message.reply(f"You can also download your article from")
                 await message.reply(resource_link)
             else:
                 await message.reply(
@@ -191,7 +191,7 @@ class CommandProcessor:
                 resource_key = await self.set_resource_by_key(resource=articles)
                 resource_link = await self.create_resource_link(resource_key=resource_key)
                 await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await message.reply(f"You can also download your articles from:")
+                await message.reply(f"You can also download your articles from")
                 await message.reply(resource_link)
 
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
@@ -224,7 +224,7 @@ class CommandProcessor:
             mention = message.author.mention
             _count: int = len(articles)
             await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await message.reply(f"You can also download your articles from:")
+            await message.reply(f"You can also download your articles from")
             await message.reply(resource_link)
 
             formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
@@ -256,7 +256,7 @@ class CommandProcessor:
                 mention = message.author.mention
 
                 await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await message.reply(f"You can also download your articles from:")
+                await message.reply(f"You can also download your articles from")
                 await message.reply(resource_link)
 
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
@@ -290,7 +290,7 @@ class CommandProcessor:
             mention = message.author.mention
 
             await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await message.reply(f"You can also download your articles from:")
+            await message.reply(f"You can also download your articles from")
             await message.reply(resource_link)
 
             formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
@@ -321,7 +321,7 @@ class CommandProcessor:
                 _count: int = len(articles)
 
                 await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await message.reply(f"You can also download your articles from:")
+                await message.reply(f"You can also download your articles from")
                 await message.reply(resource_link)
 
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
@@ -417,7 +417,8 @@ class CommandProcessor:
                 resource_link = await self.create_resource_link(resource_key=resource_key)
 
                 await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
-                await news_channel.send(f"Hi {mention}, you can also download your ticker list from {resource_link}")
+                await news_channel.send(f"Hi {mention}, you can also download your ticker list from")
+                await news_channel.send(resource_link)
 
                 formatted_tickers = json.dumps(tickers, indent=4)
                 # Send each chunk as a separate message
@@ -439,7 +440,8 @@ class CommandProcessor:
         resource_link = await self.create_resource_link(resource_key=resource_key)
 
         await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
-        await news_channel.send(f"Hi {mention}, you can also download your publisher list from {resource_link}")
+        await news_channel.send(f"Hi {mention}, you can also download your publisher list from")
+        await news_channel.send(resource_link)
 
         # Assuming the JSON string is stored in the 'publishers' variable
         formatted_publishers = json.dumps(publishers, indent=4)
@@ -460,7 +462,8 @@ class CommandProcessor:
         resource_link = await self.create_resource_link(resource_key=resource_key)
 
         await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
-        await news_channel.send(f"Hi {mention}, you can also download your exchange list from {resource_link}")
+        await news_channel.send(f"Hi {mention}, you can also download your exchange list from")
+        await news_channel.send(resource_link)
 
         # Assuming the JSON string is stored in the 'publishers' variable
         formatted_exchanges = json.dumps(exchanges, indent=4)
