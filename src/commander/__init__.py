@@ -78,7 +78,7 @@ class CommandProcessor:
         return resource_key
 
     async def create_resource_link(self, resource_key: str) -> str:
-        return f"https://news-api.site/discord/resource/{resource_key}"
+        return f"https://discord.news-api.site/discord/resource/{resource_key}"
 
     async def admin_commands(self, message: Message):
         """

@@ -49,7 +49,7 @@ async def startup_event():
         logger.info("Task already started, skipping...")
 
 
-@app.get('/discord/resource/{path}')
+@app.get('/resource/{path}')
 async def get_resource(path: str = Path(...)):
 
     resource_key = str(path)
