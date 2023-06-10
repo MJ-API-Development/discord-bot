@@ -133,6 +133,12 @@ class CommandProcessor:
 
     @mention_wrapper
     async def articles_by_uuid(self, message: Message):
+        """
+            **articles_by_uuid**
+                given an article uuid return article
+        :param message:
+        :return:
+        """
         try:
             self._logger.info(f'listing articles by uuid for: {message.author.mention}')
 
@@ -153,6 +159,12 @@ class CommandProcessor:
 
     @mention_wrapper
     async def articles_bounded(self, message: Message):
+        """
+            **articles_bounded**
+
+        :param message:
+        :return:
+        """
         try:
 
             self._logger.info(f'listing articles bounded for: {message.author.mention}')
