@@ -223,7 +223,7 @@ class CommandProcessor:
     async def articles_by_publisher(self, message: Message):
         try:
 
-            elf._logger.info(f'listing articles by publisher for: {message.author.mention}')
+            self._logger.info(f'listing articles by publisher for: {message.author.mention}')
             _publisher: str = message.content.split(" ")[1].strip()
             mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
