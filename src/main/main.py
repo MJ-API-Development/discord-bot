@@ -45,6 +45,7 @@ async def startup_event():
     else:
         logger.info("Task already started, skipping...")
 
+    # TODO create a link clean up event
 
 @app.get('/resource/{path}')
 async def get_resource(path: str = Path(...)):

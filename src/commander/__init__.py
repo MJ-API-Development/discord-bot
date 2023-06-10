@@ -60,9 +60,7 @@ class CommandProcessor:
 
         :param resource_key:
         :return: dict[str, str]
-
         """
-        # TODO send tickers by link
         return self._resource_links.get(resource_key)
 
     async def set_resource_by_key(self, resource) -> str:
@@ -146,8 +144,6 @@ class CommandProcessor:
             self._logger.info(f'listing articles by uuid for: {message.author.mention}')
 
             uuid = message.content.split(" ")[1].strip()
-            news_channel = client.get_channel(news_channel_id)
-
             if uuid:
                 article: dict[str, str] = await tasks_executor.get_article_by_uuid(uuid=uuid)
                 mention = message.author.mention
@@ -178,8 +174,6 @@ class CommandProcessor:
             count: str = message.content.split(" ")[1].strip()
             if count.isdecimal():
                 mention = message.author.mention
-                news_channel = client.get_channel(news_channel_id)
-
                 _count: int = int(count)
                 if _count > 99:
                     self._rate_limit_flags.remove(mention)
@@ -212,7 +206,6 @@ class CommandProcessor:
         try:
 
             self._logger.info(f'listing articles by date for: {message.author.mention}')
-            news_channel = client.get_channel(news_channel_id)
 
             _date: str = message.content.split(" ")[1].strip()
             # Use the date_obj for further processing
@@ -242,8 +235,6 @@ class CommandProcessor:
 
             self._logger.info(f'listing articles by publisher for: {message.author.mention}')
             _publisher: str = message.content.split(" ")[1].strip()
-
-            news_channel = client.get_channel(news_channel_id)
 
             if _publisher:
                 _publisher = _publisher.lower()
@@ -275,7 +266,6 @@ class CommandProcessor:
         try:
             self._logger.info(f'listing paged articles for: {message.author.mention}')
             _page_number: str = message.content.split(" ")[1].strip()
-            news_channel = client.get_channel(news_channel_id)
 
             if _page_number.isdecimal():
                 _page_number: int = int(_page_number)
@@ -308,9 +298,6 @@ class CommandProcessor:
             self._logger.info(f'listing articles by ticker for: {message.author.mention}')
             _ticker: str = message.content.split(" ")[1].strip()
 
-            mention = message.author.mention
-            news_channel = client.get_channel(news_channel_id)
-
             if _ticker:
                 _ticker = _ticker.lower()
 
@@ -319,6 +306,7 @@ class CommandProcessor:
                 resource_link = await self.create_resource_link(resource_key=resource_key)
 
                 _count: int = len(articles)
+                mention = message.author.mention
 
                 await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
                 await message.reply(f"You can also download your articles from")
