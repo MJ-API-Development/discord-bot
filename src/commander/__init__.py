@@ -39,7 +39,7 @@ STOP_FLAG: str = "admin_stop"
 INCREASE_RATE_LIMIT_FLAG: str = "increase_rate_limit"
 
 
-# noinspection PyMethodMayBeStatic
+# noinspection PyMethodMayBeStatic,DuplicatedCode
 class CommandProcessor:
     """
 
@@ -65,7 +65,7 @@ class CommandProcessor:
         # TODO send tickers by link
         return self._resource_links.get(resource_key)
 
-    async def set_resource_by_key(self, resource: dict[str, str | list[dict[str, str]]]) -> str:
+    async def set_resource_by_key(self, resource) -> str:
         """
         **set_resource_by_key**
             adds resource by a unique key so the resource can be accessed via web links.
@@ -76,6 +76,9 @@ class CommandProcessor:
         resource_key: str = str(uuid4())
         self._resource_links[resource_key] = resource
         return resource_key
+
+    async def create_resource_link(self, resource_key: str) -> str:
+        return f"https://news-api.site/discord/resource/{resource_key}"
 
     async def admin_commands(self, message: Message):
         """
@@ -181,9 +184,13 @@ class CommandProcessor:
                 # Use the date_obj for further processing
                 articles: list[dict[str, str]] = await tasks_executor.get_articles_bounded(count=_count)
                 _count: int = len(articles)
-
+                resource_key = await self.set_resource_by_key(resource=articles)
+                resource_link = await self.create_resource_link(resource_key=resource_key)
                 await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await news_channel.send(f"You can also download your articles from : {resource_link}")
+
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
+
                 await message.author.send(f"Sending {_count} articles")
                 for article in formatted_articles:
                     await message.author.send(article)
@@ -200,16 +207,20 @@ class CommandProcessor:
         try:
 
             self._logger.info(f'listing articles by date for: {message.author.mention}')
-            mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
             _date: str = message.content.split(" ")[1].strip()
             # Use the date_obj for further processing
 
             articles: list[dict[str, str]] = await tasks_executor.articles_by_date(_date=_date)
-            _count: int = len(articles)
+            resource_key = await self.set_resource_by_key(resource=articles)
+            resource_link = await self.create_resource_link(resource_key=resource_key)
 
+            mention = message.author.mention
+            _count: int = len(articles)
             await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await news_channel.send(f"You can also download your articles from : {resource_link}")
+
             formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
             await message.author.send(f"Sending {_count} articles")
             for article in formatted_articles:
@@ -225,16 +236,22 @@ class CommandProcessor:
 
             self._logger.info(f'listing articles by publisher for: {message.author.mention}')
             _publisher: str = message.content.split(" ")[1].strip()
-            mention = message.author.mention
+
             news_channel = client.get_channel(news_channel_id)
 
             if _publisher:
                 _publisher = _publisher.lower()
-                self._rate_limit_flags.add(mention)
+
                 articles: list[dict[str, str]] = await tasks_executor.articles_by_publisher(publisher=_publisher)
+                resource_key = await self.set_resource_by_key(resource=articles)
+                resource_link = await self.create_resource_link(resource_key=resource_key)
+
                 _count: int = len(articles)
+                mention = message.author.mention
 
                 await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await news_channel.send(f"You can also download your articles from : {resource_link}")
+
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
                 await message.author.send(f"Sending {_count} articles")
                 for article in formatted_articles:
@@ -251,7 +268,6 @@ class CommandProcessor:
         try:
             self._logger.info(f'listing paged articles for: {message.author.mention}')
             _page_number: str = message.content.split(" ")[1].strip()
-            mention = message.author.mention
             news_channel = client.get_channel(news_channel_id)
 
             if _page_number.isdecimal():
@@ -260,9 +276,15 @@ class CommandProcessor:
                 raise ValueError("Invalid page number")
 
             articles: list[dict[str, str]] = await tasks_executor.articles_by_page(number=_page_number)
+            resource_key = await self.set_resource_by_key(resource=articles)
+            resource_link = await self.create_resource_link(resource_key=resource_key)
+
             _count: int = len(articles)
+            mention = message.author.mention
 
             await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await news_channel.send(f"You can also download your articles from : {resource_link}")
+
             formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
             await message.author.send(f"Sending {_count} articles")
 
@@ -285,10 +307,15 @@ class CommandProcessor:
                 _ticker = _ticker.lower()
 
                 articles: list[dict[str, str]] = await tasks_executor.articles_by_ticker(ticker=_ticker)
+                resource_key = await self.set_resource_by_key(resource=articles)
+                resource_link = await self.create_resource_link(resource_key=resource_key)
+
                 _count: int = len(articles)
 
                 await news_channel.send(
                     f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
+                await news_channel.send(f"You can also download your articles from : {resource_link}")
+
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
                 await message.author.send(f"Sending {_count} articles")
                 for article in formatted_articles:
@@ -378,8 +405,12 @@ class CommandProcessor:
                 _exchange_code = _exchange_code.lower()
 
                 tickers = await tasks_executor.tickers_by_exchange(exchange_code=_exchange_code)
+                resource_key = await self.set_resource_by_key(resource=tickers)
+                resource_link = await self.create_resource_link(resource_key=resource_key)
 
                 await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
+                await news_channel.send(f"Hi {mention}, you can also download your ticker list from {resource_link}")
+
                 formatted_tickers = json.dumps(tickers, indent=4)
                 # Send each chunk as a separate message
                 for chunk in [formatted_tickers[i:i + self._chunk_size]
@@ -396,7 +427,12 @@ class CommandProcessor:
         mention = message.author.mention
         news_channel = client.get_channel(news_channel_id)
         publishers = await tasks_executor.list_publishers()
+        resource_key = await self.set_resource_by_key(resource=publishers)
+        resource_link = await self.create_resource_link(resource_key=resource_key)
+
         await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
+        await news_channel.send(f"Hi {mention}, you can also download your publisher list from {resource_link}")
+
         # Assuming the JSON string is stored in the 'publishers' variable
         formatted_publishers = json.dumps(publishers, indent=4)
 
@@ -412,7 +448,12 @@ class CommandProcessor:
         mention = message.author.mention
         news_channel = client.get_channel(news_channel_id)
         exchanges = await tasks_executor.list_exchanges()
+        resource_key = await self.set_resource_by_key(resource=exchanges)
+        resource_link = await self.create_resource_link(resource_key=resource_key)
+
         await news_channel.send(f"Hi {mention}, I am sending the response to your DM")
+        await news_channel.send(f"Hi {mention}, you can also download your exchange list from {resource_link}")
+
         # Assuming the JSON string is stored in the 'publishers' variable
         formatted_exchanges = json.dumps(exchanges, indent=4)
         # Send each chunk as a separate message

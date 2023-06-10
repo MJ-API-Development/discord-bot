@@ -1,9 +1,10 @@
 import asyncio
-import concurrent.futures
+from json.decoder import JSONDecodeError
 from fastapi import FastAPI, Path
+from fastapi.responses import JSONResponse
 from src.config import config_instance
 from src.logger import init_logger, AppLogger
-from src.commander import client
+from src.commander import client, command_processor
 
 settings = config_instance().APP_SETTINGS
 app = FastAPI(
@@ -29,6 +30,8 @@ TEN_MINUTES = 600
 settings = config_instance().DISCORD_SETTINGS
 task_started = False
 
+logger = init_logger("Discord-BOt")
+
 
 # asyncio.create_task(client.start(token=settings.TOKEN))
 
@@ -41,6 +44,21 @@ async def startup_event():
 
         # Start the task
         asyncio.create_task(client.start(token=settings.TOKEN))
-        print("Discord bot running")
+        logger.info("Discord bot running")
     else:
-        print("Task already started, skipping...")
+        logger.info("Task already started, skipping...")
+
+
+@app.get('/discord/resource/{path}')
+async def get_resource(path: str = Path(...)):
+
+    resource_key = str(path)
+    logger.info(f"path is {resource_key}")
+    try:
+        response = await command_processor.get_resource_by_key(resource_key=resource_key)
+        _content = dict(payload=response, message='successfully retrieved data')
+        return JSONResponse(content=_content, status_code=200, headers={"Content-Type": "application/json"})
+    except JSONDecodeError as e:
+        logger.error(str(e))
+        _response = {"message": "Error reading response"}
+        return JSONResponse(content=_response, status_code=500, headers={"Content-Type": "application/json"})
