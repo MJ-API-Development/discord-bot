@@ -249,8 +249,9 @@ class CommandProcessor:
                 _count: int = len(articles)
                 mention = message.author.mention
 
-                await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-                await news_channel.send(f"You can also download your articles from : {resource_link}")
+                await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await message.reply(f"You can also download your articles from:")
+                await message.reply(resource_link)
 
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
                 await message.author.send(f"Sending {_count} articles")
@@ -282,8 +283,9 @@ class CommandProcessor:
             _count: int = len(articles)
             mention = message.author.mention
 
-            await news_channel.send(f"Hi {mention}, I am sending {_count} Articles to your DM")
-            await news_channel.send(f"You can also download your articles from : {resource_link}")
+            await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
+            await message.reply(f"You can also download your articles from:")
+            await message.reply(resource_link)
 
             formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
             await message.author.send(f"Sending {_count} articles")
@@ -312,9 +314,9 @@ class CommandProcessor:
 
                 _count: int = len(articles)
 
-                await news_channel.send(
-                    f"Hi {mention}, I am sending {_count} {_ticker.upper()} Articles to your DM")
-                await news_channel.send(f"You can also download your articles from : {resource_link}")
+                await message.reply(f"Hi {mention}, I am sending {_count} Articles to your DM")
+                await message.reply(f"You can also download your articles from:")
+                await message.reply(resource_link)
 
                 formatted_articles = [f"[{article['title']}]({article['link']})" for article in articles]
                 await message.author.send(f"Sending {_count} articles")
