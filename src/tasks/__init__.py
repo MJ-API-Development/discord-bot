@@ -184,5 +184,17 @@ class TasksExecutor:
                     return articles
                 return []
 
+    async def get_article_by_uuid(self, uuid: str):
+        request_url: str = f"https://gateway.eod-stock-api.site/api/v1/news/article/{uuid}"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url=request_url, params=self._params) as response:
+                response.raise_for_status()
+                if response.headers.get('Content-Type') == 'application/json':
+                    response = await response.json()
+                    articles = response.get('payload', {})
+                    # Format the articles payload to include only title and link
+                    return articles
+                return {}
+
 
 tasks_executor = TasksExecutor()

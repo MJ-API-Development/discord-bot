@@ -47,6 +47,7 @@ async def startup_event():
 
     # TODO create a link clean up event
 
+
 @app.get('/resource/{path}')
 async def get_resource(path: str = Path(...)):
     resource_key = str(path)
